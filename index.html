@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CivicPulse — Civic Issue Reporting & Resolution Platform</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            civic: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#0f172a',
+            },
+            status: {
+              submitted: '#ef4444',
+              under_review: '#f97316',
+              assigned: '#eab308',
+              in_progress: '#3b82f6',
+              resolved: '#10b981',
+              closed: '#64748b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Leaflet CSS & JS for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Chart.js for Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-500 selection:text-white pb-16 md:pb-0">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Branding -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigateTo('landing')">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xl tracking-tight text-slate-900">Civic<span class="text-blue-600">Pulse</span></span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">GovTech</span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">Public Issue Reporting & Resolution Portal</p>
+          </div>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center gap-1">
+          <button onclick="app.navigateTo('landing')" id="nav-landing" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            Home
+          </button>
+          <button onclick="app.navigateTo('citizen-dashboard')" id="nav-citizen-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            Citizen Portal
+          </button>
+          <button onclick="app.navigateTo('authority-dashboard')" id="nav-authority-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            Authority Portal
+          </button>
+          <button onclick="app.navigateTo('map-view')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            Live Civic Map
+          </button>
+          <button onclick="app.navigateTo('admin-dashboard')" id="nav-admin-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            Admin
+          </button>
+        </nav>
+
+        <!-- Right Quick Actions & Role Switcher -->
+        <div class="flex items-center gap-3">
+          
+          <!-- Role Switcher Dropdown (for testing and role demonstration) -->
+          <div class="relative">
+            <button id="role-selector-btn" onclick="app.toggleRoleMenu()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="current-role-label">Role: Citizen</span>
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500"></i>
+            </button>
+            <div id="role-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 text-xs font-medium">
+              <div class="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400">Switch Active Persona</div>
+              <button onclick="app.switchRole('citizen')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+                <i data-lucide="user" class="w-4 h-4 text-blue-500"></i> Citizen (Rahul Sharma)
+              </button>
+              <button onclick="app.switchRole('authority-pwd')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+                <i data-lucide="hard-hat" class="w-4 h-4 text-amber-500"></i> Authority (PWD & Roads)
+              </button>
+              <button onclick="app.switchRole('authority-waste')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4 text-emerald-500"></i> Authority (Solid Waste Mgmt)
+              </button>
+              <button onclick="app.switchRole('authority-water')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+                <i data-lucide="droplet" class="w-4 h-4 text-cyan-500"></i> Authority (Water & Sewerage)
+              </button>
+              <button onclick="app.switchRole('admin')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-purple-500"></i> Platform Administrator
+              </button>
+            </div>
+          </div>
+
+          <!-- Notification Bell -->
+          <button onclick="app.toggleNotifications()" class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i data-lucide="bell" class="w-5 h-5"></i>
+            <span id="notif-badge" class="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center ring-2 ring-white">3</span>
+          </button>
+
+          <!-- Primary Report Issue CTA Button -->
+          <button onclick="app.startReportIssue()" class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-blue-600/20 transition transform active:scale-95">
+            <i data-lucide="camera" class="w-4 h-4"></i>
+            <span>Report Issue</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= NOTIFICATIONS DRAWER ================= -->
+  <div id="notifications-drawer" class="hidden fixed top-16 right-4 w-80 sm:w-96 max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-slideDown">
+    <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i data-lucide="bell" class="w-4 h-4 text-blue-400"></i>
+        <h3 class="font-bold text-sm">Notifications & Updates</h3>
+      </div>
+      <button onclick="app.markAllNotificationsRead()" class="text-xs text-blue-300 hover:underline">Mark all read</button>
+    </div>
+    <div id="notifications-list" class="divide-y divide-slate-100 overflow-y-auto max-h-96 p-2">
+      <!-- Dynamic Notifications injected by JS -->
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT AREA ================= -->
+  <main id="app-root" class="flex-1 overflow-x-hidden">
+    
+    <!-- 1. LANDING PAGE VIEW -->
+    <section id="view-landing" class="view-section">
+      <!-- Hero Section -->
+      <div class="relative bg-gradient-to-b from-blue-900 via-indigo-950 to-slate-900 text-white py-16 sm:py-24 overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-6">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Next-Gen Civic Tech Platform
+          </span>
+          <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+            See a Civic Problem? <br/><span class="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">Snap, Report & Resolve in Minutes.</span>
+          </h1>
+          <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
+            Directly bridge the gap between citizens and municipal authorities with live camera verification, precise GPS tracking, and complete transparent resolution lifecycle.
+          </p>
+
+          <!-- Main CTA Action Box -->
+          <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+            <button onclick="app.startReportIssue()" class="w-full sm:w-auto flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/30 text-base transition transform hover:-translate-y-0.5">
+              <i data-lucide="camera" class="w-5 h-5"></i>
+              <span>Report a Civic Issue Now</span>
+            </button>
+            <button onclick="app.navigateTo('map-view')" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-4 rounded-2xl text-base backdrop-blur transition">
+              <i data-lucide="map" class="w-5 h-5 text-cyan-400"></i>
+              <span>Explore Live Map</span>
+            </button>
+          </div>
+
+          <!-- Quick Stat Badges -->
+          <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-8 border-t border-white/10 text-left">
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
+              <div class="text-2xl sm:text-3xl font-extrabold text-blue-400" id="hero-stat-total">1,482</div>
+              <div class="text-xs text-slate-300 mt-1">Issues Reported</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
+              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400" id="hero-stat-resolved">1,210</div>
+              <div class="text-xs text-slate-300 mt-1">Resolved Successfully</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
+              <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400">18.4 hrs</div>
+              <div class="text-xs text-slate-300 mt-1">Avg Resolution Time</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
+              <div class="text-2xl sm:text-3xl font-extrabold text-amber-400">92.4%</div>
+              <div class="text-xs text-slate-300 mt-1">Citizen Satisfaction</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Features Grid -->
+      <div class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-12">
+          <h2 class="text-xs uppercase font-bold text-blue-600 tracking-wider">How It Works</h2>
+          <p class="mt-2 text-3xl font-bold text-slate-900">4 Simple Steps to a Better City</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg mb-4">
+              <i data-lucide="camera" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">1. Snap Live Photo</h3>
+            <p class="text-sm text-slate-600 mt-2">Open the camera in one click. Capture clear photographic evidence directly on-site.</p>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center font-bold text-lg mb-4">
+              <i data-lucide="map-pin" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">2. Auto-Detect GPS</h3>
+            <p class="text-sm text-slate-600 mt-2">Accurate coordinates and human-readable address are pinned immediately on the interactive map.</p>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg mb-4">
+              <i data-lucide="send" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">3. Auto-Routing</h3>
+            <p class="text-sm text-slate-600 mt-2">Complaint gets routed automatically to the designated Municipal Corporation, PWD, or NGO team.</p>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg mb-4">
+              <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900">4. Verified Resolution</h3>
+            <p class="text-sm text-slate-600 mt-2">Authorities upload after-work photographic proof before the issue is closed with citizen approval.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CITIZEN DASHBOARD VIEW -->
+    <section id="view-citizen-dashboard" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Welcome & Quick Action Header -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg mb-8">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-2xl sm:text-3xl font-extrabold">Welcome, Rahul Sharma</h2>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">Verified Citizen</span>
+          </div>
+          <p class="text-blue-200 text-sm mt-1">Ward 42, Green Park Central • Help keep your neighborhood clean and safe</p>
+        </div>
+        <button onclick="app.startReportIssue()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg shadow-emerald-500/30 transition transform hover:scale-105 active:scale-95">
+          <i data-lucide="camera" class="w-5 h-5"></i>
+          <span>Report New Civic Issue</span>
+        </button>
+      </div>
+
+      <!-- Citizen Stat Counters -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">My Complaints</p>
+            <h3 class="text-2xl font-bold text-slate-900 mt-1" id="citizen-stat-total">6</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">In Progress</p>
+            <h3 class="text-2xl font-bold text-blue-600 mt-1" id="citizen-stat-inprogress">2</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Resolved</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-1" id="citizen-stat-resolved">3</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Pending Review</p>
+            <h3 class="text-2xl font-bold text-amber-600 mt-1" id="citizen-stat-pending">1</h3>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filterable My Complaints List -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">My Submitted Complaints</h3>
+            <p class="text-xs text-slate-500">Track real-time progress, authority notes, and resolution proofs</p>
+          </div>
+          
+          <!-- Category and Status Filter -->
+          <div class="flex items-center gap-2">
+            <select id="citizen-filter-status" onchange="app.renderCitizenComplaints()" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all">All Statuses</option>
+              <option value="Submitted">Submitted (New)</option>
+              <option value="Under Review">Under Review</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="citizen-complaints-list" class="divide-y divide-slate-100">
+          <!-- Dynamic Complaints injected by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. REPORT ISSUE WIZARD (MODAL / FULL SCREEN VIEW) -->
+    <section id="view-report-wizard" class="view-section hidden py-6 max-w-3xl mx-auto px-4 sm:px-6">
+      
+      <!-- Wizard Progress Header -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Quick Civic Complaint Form</span>
+            <h2 class="text-xl font-extrabold text-slate-900">Report a Civic Problem</h2>
+          </div>
+          <button onclick="app.cancelReportWizard()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Stepper Indicators -->
+        <div class="flex items-center justify-between relative">
+          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 z-0"></div>
+          <div id="step-bar-progress" class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-600 z-0 transition-all duration-300 w-1/4"></div>
+          
+          <!-- Step 1 Indicator -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="step-node-1" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-md">1</div>
+            <span class="text-[10px] font-semibold text-slate-700 mt-1">Live Photo</span>
+          </div>
+          <!-- Step 2 Indicator -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="step-node-2" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">2</div>
+            <span class="text-[10px] font-semibold text-slate-500 mt-1">GPS Location</span>
+          </div>
+          <!-- Step 3 Indicator -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="step-node-3" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">3</div>
+            <span class="text-[10px] font-semibold text-slate-500 mt-1">Details</span>
+          </div>
+          <!-- Step 4 Indicator -->
+          <div class="relative z-10 flex flex-col items-center">
+            <div id="step-node-4" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">4</div>
+            <span class="text-[10px] font-semibold text-slate-500 mt-1">Submit</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 1: LIVE CAMERA CAPTURE -->
+      <div id="wizard-step-1" class="wizard-step bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <div class="text-center max-w-md mx-auto mb-6">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold mb-2">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Live Verification Feature
+          </div>
+          <h3 class="text-xl font-extrabold text-slate-900">Capture Live Photo of the Issue</h3>
+          <p class="text-xs text-slate-500 mt-1">Capturing a live photo helps authorities instantly authenticate the problem and initiate rapid resolution.</p>
+        </div>
+
+        <!-- Camera Viewport Box -->
+        <div class="relative bg-slate-950 rounded-2xl overflow-hidden aspect-[4/3] max-w-md mx-auto flex items-center justify-center shadow-inner border-2 border-slate-800">
+          
+          <!-- Live Video Stream -->
+          <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+
+          <!-- Captured Photo Canvas / Preview Image -->
+          <img id="photo-preview" class="w-full h-full object-cover hidden" alt="Captured issue preview"/>
+          <canvas id="camera-canvas" class="hidden"></canvas>
+
+          <!-- Camera Placeholder before start -->
+          <div id="camera-placeholder" class="flex flex-col items-center text-center p-6 text-slate-400">
+            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 mb-3 animate-pulse">
+              <i data-lucide="camera" class="w-8 h-8"></i>
+            </div>
+            <p class="text-sm font-semibold text-slate-300">Camera is ready</p>
+            <p class="text-xs text-slate-500 mt-1">Click the button below to activate your camera or upload a file</p>
+          </div>
+
+          <!-- Camera Controls Overlay -->
+          <div id="camera-live-overlay" class="hidden absolute top-3 right-3 flex items-center gap-2">
+            <button onclick="cameraModule.switchCameraFacing()" class="p-2 rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80 transition" title="Flip Camera">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- GPS Watermark Badge (when photo taken) -->
+          <div id="photo-watermark-badge" class="hidden absolute bottom-3 left-3 right-3 bg-black/70 backdrop-blur text-white text-[11px] p-2 rounded-xl flex items-center justify-between">
+            <span class="flex items-center gap-1.5 font-medium truncate">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400 flex-shrink-0"></i>
+              <span id="watermark-gps-text">Detecting GPS...</span>
+            </span>
+            <span id="watermark-time-text" class="text-slate-400 text-[10px]">Just now</span>
+          </div>
+        </div>
+
+        <!-- Camera Actions -->
+        <div class="max-w-md mx-auto mt-6 flex flex-col gap-3">
+          
+          <!-- State A: Camera not yet active -->
+          <div id="camera-btn-group-init" class="flex flex-col sm:flex-row gap-3">
+            <button onclick="cameraModule.startCamera()" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-600/20 transition">
+              <i data-lucide="camera" class="w-5 h-5"></i>
+              <span>Open Device Camera</span>
+            </button>
+            <label class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl cursor-pointer transition">
+              <i data-lucide="upload" class="w-5 h-5 text-slate-500"></i>
+              <span>Upload from Device</span>
+              <input type="file" id="file-photo-upload" accept="image/*" class="hidden" onchange="cameraModule.handleFileUpload(event)">
+            </label>
+          </div>
+
+          <!-- State B: Camera is actively streaming -->
+          <div id="camera-btn-group-streaming" class="hidden flex items-center justify-center gap-4">
+            <button onclick="cameraModule.captureSnapshot()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-rose-600/30 transition transform active:scale-95">
+              <span class="w-4 h-4 rounded-full bg-white animate-ping mr-1"></span>
+              <i data-lucide="aperture" class="w-5 h-5"></i>
+              <span>Snap Photo Now</span>
+            </button>
+          </div>
+
+          <!-- State C: Photo Captured (Preview Mode) -->
+          <div id="camera-btn-group-preview" class="hidden flex gap-3">
+            <button onclick="cameraModule.retakePhoto()" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl transition">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Retake Photo</span>
+            </button>
+            <button onclick="app.wizardNext(2)" class="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-600/20 transition">
+              <span>Next: Confirm Location</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Quick Samples fallback for desktop testing -->
+          <div class="text-center mt-2">
+            <p class="text-[11px] text-slate-400">Testing on PC without webcam? <button type="button" onclick="cameraModule.loadPresetCivicPhoto()" class="text-blue-600 underline font-semibold">Load Sample Pothole/Civic Photo</button></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: GPS LOCATION & INTERACTIVE MAP CONFIRMATION -->
+      <div id="wizard-step-2" class="wizard-step hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <div class="text-center max-w-md mx-auto mb-4">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-xs font-semibold mb-2">
+            <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Precise Location
+          </div>
+          <h3 class="text-xl font-extrabold text-slate-900">Confirm Location on Map</h3>
+          <p class="text-xs text-slate-500 mt-1">We detected your GPS coordinates. Drag the marker if you wish to adjust the exact spot.</p>
+        </div>
+
+        <!-- Interactive Leaflet Map for Location Selection -->
+        <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner h-64 sm:h-80 mb-4 z-0">
+          <div id="wizard-leaflet-map" class="w-full h-full z-0"></div>
+          
+          <button onclick="locationModule.detectLiveGPS()" class="absolute top-3 right-3 z-10 bg-white shadow-md text-slate-700 hover:text-blue-600 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-2 border border-slate-200">
+            <i data-lucide="crosshair" class="w-4 h-4 text-blue-500 animate-spin-slow"></i>
+            <span>Re-center GPS</span>
+          </button>
+        </div>
+
+        <!-- Address & GPS Details Card -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1">
+              <label class="text-[11px] font-bold uppercase text-slate-500">Detected Address</label>
+              <input type="text" id="wizard-address-input" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 font-medium mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none" value="Main Ring Road, Sector 14, Near Metro Pillar 84">
+              <div class="flex items-center gap-4 mt-2 text-[11px] text-slate-500 font-mono">
+                <span>Lat: <strong id="wizard-lat-display">28.6139</strong></span>
+                <span>Lng: <strong id="wizard-lng-display">77.2090</strong></span>
+                <span class="text-emerald-600 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> GPS Locked (±5m)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="app.wizardPrev(1)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl">
+            Back
+          </button>
+          <button onclick="app.wizardNext(3)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+            <span>Next: Issue Details</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3: CATEGORY & DESCRIPTION -->
+      <div id="wizard-step-3" class="wizard-step hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <h3 class="text-xl font-extrabold text-slate-900 mb-1">Issue Details</h3>
+        <p class="text-xs text-slate-500 mb-6">Categorize the issue to ensure it routes directly to the correct department.</p>
+
+        <!-- Category Grid Selector -->
+        <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Select Category *</label>
+        <div id="category-selector-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-6">
+          <!-- Populated by JS with options like Potholes, Garbage, Streetlight, etc. -->
+        </div>
+
+        <!-- Issue Title -->
+        <div class="mb-4">
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Issue Title *</label>
+          <input type="text" id="wizard-title-input" placeholder="e.g., Deep dangerous pothole on main intersection" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <!-- Priority Urgency Level -->
+        <div class="mb-4">
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Severity / Urgency Level</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+              <input type="radio" name="wizard-priority" value="Low" class="hidden">
+              <span class="text-xs font-bold text-slate-700">🟢 Low</span>
+              <span class="text-[10px] text-slate-400">Minor aesthetic</span>
+            </label>
+            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
+              <input type="radio" name="wizard-priority" value="Medium" checked class="hidden">
+              <span class="text-xs font-bold text-amber-700">🟡 Medium</span>
+              <span class="text-[10px] text-slate-400">Normal priority</span>
+            </label>
+            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
+              <input type="radio" name="wizard-priority" value="High" class="hidden">
+              <span class="text-xs font-bold text-rose-700">🔴 High / Urgent</span>
+              <span class="text-[10px] text-slate-400">Hazardous / blocking</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Detailed Description -->
+        <div class="mb-6">
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Detailed Description *</label>
+          <textarea id="wizard-desc-input" rows="3" placeholder="Provide additional details, landmark, or how long this issue has persisted..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="app.wizardPrev(2)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl">
+            Back
+          </button>
+          <button onclick="app.wizardNext(4)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
+            <span>Next: Review & Submit</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 4: REVIEW & CONFIRM SUBMISSION -->
+      <div id="wizard-step-4" class="wizard-step hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <h3 class="text-xl font-extrabold text-slate-900 mb-1">Review Your Complaint</h3>
+        <p class="text-xs text-slate-500 mb-6">Please verify the details below before submitting to the Municipal Authority.</p>
+
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-4 mb-6">
+          <div class="flex gap-4">
+            <img id="review-photo" class="w-24 h-24 object-cover rounded-xl border border-slate-300" src="" alt="Live capture thumbnail"/>
+            <div class="flex-1">
+              <span id="review-category-badge" class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">Pothole</span>
+              <h4 id="review-title" class="font-bold text-slate-900 text-base mt-1">Deep dangerous pothole</h4>
+              <p id="review-address" class="text-xs text-slate-500 flex items-center gap-1 mt-1">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500"></i> Main Ring Road, Sector 14
+              </p>
+              <div class="text-[11px] text-slate-500 mt-1">
+                Priority: <strong id="review-priority" class="text-amber-600">Medium</strong>
+              </div>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-200 text-xs text-slate-600">
+            <span class="font-bold">Description:</span>
+            <p id="review-desc" class="mt-0.5 text-slate-700 italic">"Pothole is causing traffic slowdown and risks for two-wheelers."</p>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-200">
+            <span>Routing Destination:</span>
+            <span class="font-bold text-blue-700" id="review-target-dept">Municipal Corp - PWD & Roads</span>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="app.wizardPrev(3)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl">
+            Edit Details
+          </button>
+          <button id="btn-submit-complaint" onclick="app.submitNewComplaint()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3.5 rounded-2xl shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span>Confirm & Submit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SUCCESS CONFIRMATION SCREEN -->
+      <div id="wizard-success" class="hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 animate-bounce">
+          <i data-lucide="check" class="w-8 h-8"></i>
+        </div>
+        <span class="text-xs uppercase font-bold text-emerald-600 tracking-wider">Complaint Successfully Registered</span>
+        <h2 class="text-2xl font-extrabold text-slate-900 mt-1">Thank You, Rahul!</h2>
+        <p class="text-xs text-slate-500 max-w-md mx-auto mt-2">
+          Your complaint has been logged into the civic ledger and assigned to the municipal dispatch team.
+        </p>
+
+        <div class="my-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300 max-w-sm mx-auto">
+          <p class="text-[11px] text-slate-400 uppercase font-semibold">Your Tracking Complaint ID</p>
+          <p id="success-complaint-id" class="text-xl font-mono font-extrabold text-blue-600 tracking-wider mt-0.5">CIV-2026-000108</p>
+          <p class="text-[10px] text-slate-500 mt-1">SMS & in-app alerts have been activated for this ticket.</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-3">
+          <button onclick="app.viewComplaintDetails(app.latestSubmittedId)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-2xl shadow-md">
+            View Complaint Timeline
+          </button>
+          <button onclick="app.navigateTo('citizen-dashboard')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-2xl">
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. COMPLAINT DETAILS & TIMELINE VIEW -->
+    <section id="view-complaint-details" class="view-section hidden py-6 max-w-5xl mx-auto px-4 sm:px-6">
+      
+      <!-- Back Navigation Bar -->
+      <div class="flex items-center justify-between mb-6">
+        <button onclick="app.navigateBackFromDetails()" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm transition">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span>Back to Complaints</span>
+        </button>
+        
+        <div class="flex items-center gap-2">
+          <span id="detail-status-pill" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800">
+            In Progress
+          </span>
+          <span id="detail-priority-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+            High Priority
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Complaint Card Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left: Details & Photos (2 Columns) -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Complaint Overview Card -->
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <div class="flex items-center justify-between mb-2">
+              <span id="detail-id" class="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">CIV-2026-000108</span>
+              <span id="detail-timestamp" class="text-xs text-slate-400">Reported on 20 Aug 2026, 10:30 AM</span>
+            </div>
+            <h1 id="detail-title" class="text-2xl font-extrabold text-slate-900 mt-2">Severe Road Pothole near Central Market Gate</h1>
+            <p id="detail-desc" class="text-sm text-slate-600 mt-3 leading-relaxed">Large 2-foot wide pothole causing severe traffic bottlenecks and hazard for motorcyclists. Water accumulation observed.</p>
+            
+            <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap gap-4 text-xs text-slate-500">
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
+                <span id="detail-category" class="font-semibold text-slate-800">Roads & Potholes</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Assigned Department</span>
+                <span id="detail-dept" class="font-semibold text-slate-800">PWD Road Maintenance Div 3</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Reported By</span>
+                <span id="detail-reporter" class="font-semibold text-slate-800">Rahul Sharma (Verified Citizen)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photographic Evidence Box (Before / After Comparison) -->
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
+              <i data-lucide="image" class="w-4 h-4 text-blue-600"></i> Photographic Proof & Verification
+            </h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Before Photo (Citizen Live Capture) -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
+                  <span class="flex items-center gap-1.5 text-rose-600">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Citizen Report (Before)
+                  </span>
+                  <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">Live Camera Verified</span>
+                </div>
+                <div class="rounded-2xl overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-100 relative group">
+                  <img id="detail-photo-before" src="" class="w-full h-full object-cover" alt="Citizen issue photo">
+                </div>
+              </div>
+
+              <!-- After Photo (Authority Resolution Evidence) -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
+                  <span class="flex items-center gap-1.5 text-emerald-600">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Authority Proof (After)
+                  </span>
+                  <span id="detail-evidence-badge" class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Pending Work</span>
+                </div>
+                <div class="rounded-2xl overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-50 flex items-center justify-center relative">
+                  <img id="detail-photo-after" src="" class="w-full h-full object-cover hidden" alt="Resolution work proof">
+                  <div id="detail-photo-after-placeholder" class="text-center p-4 text-slate-400">
+                    <i data-lucide="hard-hat" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                    <p class="text-xs font-medium">Work in progress</p>
+                    <p class="text-[10px] text-slate-400">After photo will be uploaded upon repair</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Complaint Mini-Map -->
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i> Exact Geolocation
+            </h3>
+            <p id="detail-address-text" class="text-xs text-slate-600 mb-3 font-medium">Main Ring Road, Sector 14, Near Metro Pillar 84</p>
+            <div id="detail-mini-map" class="h-48 rounded-2xl border border-slate-200 overflow-hidden z-0"></div>
+          </div>
+        </div>
+
+        <!-- Right: Real-Time Lifecycle Timeline & Actions (1 Column) -->
+        <div class="space-y-6">
+          
+          <!-- Lifecycle Action Panel (Visible for Authorities & Admin) -->
+          <div id="detail-authority-actions" class="bg-gradient-to-b from-blue-900 to-indigo-950 text-white rounded-3xl shadow-lg p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <i data-lucide="shield" class="w-5 h-5 text-blue-400"></i>
+              <h3 class="font-bold text-sm">Authority Resolution Actions</h3>
+            </div>
+            
+            <p class="text-xs text-blue-200 mb-4">Update status, dispatch field teams, or upload completion evidence.</p>
+
+            <div class="space-y-3">
+              <select id="action-status-select" class="w-full bg-blue-950/80 border border-blue-700/50 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none">
+                <option value="Submitted">Status: Submitted</option>
+                <option value="Under Review">Status: Under Review</option>
+                <option value="Assigned">Status: Assigned to Field Team</option>
+                <option value="In Progress">Status: In Progress</option>
+                <option value="Resolved">Status: Mark as Resolved</option>
+                <option value="Closed">Status: Close Ticket</option>
+              </select>
+
+              <textarea id="action-comment-input" rows="2" placeholder="Add official remark or field update..." class="w-full bg-blue-950/80 border border-blue-700/50 rounded-xl p-2.5 text-xs text-white placeholder-blue-300 focus:outline-none"></textarea>
+
+              <!-- Upload Evidence Photo Button -->
+              <div class="flex items-center gap-2">
+                <label class="flex-1 cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl py-2 px-3 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                  <i data-lucide="camera" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Upload "After" Proof</span>
+                  <input type="file" id="evidence-photo-upload" accept="image/*" class="hidden" onchange="app.handleEvidenceUpload(event)">
+                </label>
+                <button onclick="app.quickAddPresetEvidence()" class="text-[11px] text-blue-300 underline font-medium hover:text-white">Sample Proof</button>
+              </div>
+
+              <button onclick="app.submitAuthorityAction()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md shadow-emerald-500/20 transition">
+                Apply Official Update
+              </button>
+            </div>
+          </div>
+
+          <!-- Activity Timeline Box -->
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-blue-600"></i> Complaint Timeline
+            </h3>
+
+            <div id="detail-timeline-flow" class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+              <!-- Timeline nodes injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. RESOLUTION BODY / AUTHORITY DASHBOARD VIEW -->
+    <section id="view-authority-dashboard" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Authority Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg mb-8">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="auth-org-badge" class="px-2.5 py-0.5 rounded-full bg-blue-500/30 border border-blue-400 text-blue-300 text-xs font-bold">Municipal Corp • Zone 2</span>
+            <span class="text-xs text-slate-400">Authorized Resolution Body</span>
+          </div>
+          <h1 id="auth-org-title" class="text-2xl sm:text-3xl font-extrabold mt-1">Public Works & Road Maintenance Division</h1>
+          <p class="text-xs text-slate-400 mt-1">Operational Area: Central & South Municipal Zones (12.4 sq km)</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="app.navigateTo('map-view')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition">
+            <i data-lucide="map" class="w-4 h-4"></i>
+            <span>Geographic Map View</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metrics Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase">Assigned to Us</p>
+          <p class="text-2xl font-extrabold text-slate-900 mt-1" id="auth-kpi-assigned">18</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-rose-500 uppercase">New / Unassigned</p>
+          <p class="text-2xl font-extrabold text-rose-600 mt-1" id="auth-kpi-new">4</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-blue-500 uppercase">In Progress</p>
+          <p class="text-2xl font-extrabold text-blue-600 mt-1" id="auth-kpi-inprogress">6</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-emerald-500 uppercase">Resolved (30d)</p>
+          <p class="text-2xl font-extrabold text-emerald-600 mt-1" id="auth-kpi-resolved">38</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-amber-500 uppercase">High Priority</p>
+          <p class="text-2xl font-extrabold text-amber-600 mt-1" id="auth-kpi-urgent">3</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-cyan-600 uppercase">Avg SLA Turnaround</p>
+          <p class="text-2xl font-extrabold text-cyan-700 mt-1">14.2h</p>
+        </div>
+      </div>
+
+      <!-- Analytics Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Complaints by Category</h3>
+          <div class="h-48 relative">
+            <canvas id="chart-categories"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Status Distribution</h3>
+          <div class="h-48 relative">
+            <canvas id="chart-statuses"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">7-Day Resolution Velocity</h3>
+          <div class="h-48 relative">
+            <canvas id="chart-velocity"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operational Queue Table -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Assigned Complaints Operational Queue</h3>
+            <p class="text-xs text-slate-500">Filter, prioritize, and dispatch field crews to reported locations</p>
+          </div>
+
+          <!-- Quick Filters -->
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="auth-filter-status" onchange="app.renderAuthorityQueue()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700">
+              <option value="all">All Statuses</option>
+              <option value="Submitted">New / Submitted</option>
+              <option value="Under Review">Under Review</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+            <select id="auth-filter-priority" onchange="app.renderAuthorityQueue()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700">
+              <option value="all">All Priorities</option>
+              <option value="High">High Urgency</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
+              <tr>
+                <th class="py-3 px-4">Ticket</th>
+                <th class="py-3 px-4">Photo</th>
+                <th class="py-3 px-4">Category & Title</th>
+                <th class="py-3 px-4">Location</th>
+                <th class="py-3 px-4">Priority</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="auth-queue-table-body" class="divide-y divide-slate-100">
+              <!-- Dynamically populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. INTERACTIVE CIVIC MAP VIEW -->
+    <section id="view-map-view" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+          <h1 class="text-2xl font-extrabold text-slate-900">Live Civic Issues Map</h1>
+          <p class="text-xs text-slate-500">Real-time geographical view of all reported citizen problems and resolution status</p>
+        </div>
+
+        <!-- Status Filter Legend -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <button onclick="mapModule.filterMapMarkers('all')" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-medium">All</button>
+          <button onclick="mapModule.filterMapMarkers('Submitted')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 font-medium">🔴 New</button>
+          <button onclick="mapModule.filterMapMarkers('In Progress')" class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 font-medium">🔵 In Progress</button>
+          <button onclick="mapModule.filterMapMarkers('Resolved')" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-medium">🟢 Resolved</button>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Container -->
+      <div class="relative bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[650px]">
+        <div id="full-interactive-map" class="w-full h-full z-0"></div>
+
+        <!-- Floating Quick Stats on Map -->
+        <div class="absolute bottom-4 left-4 z-10 bg-white/90 backdrop-blur p-3 rounded-2xl shadow-lg border border-slate-200 text-xs font-semibold text-slate-700 hidden sm:flex items-center gap-4">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> New Issue</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Under Review</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> In Progress</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Resolved</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. PLATFORM ADMINISTRATOR DASHBOARD VIEW -->
+    <section id="view-admin-dashboard" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Admin Header -->
+      <div class="bg-gradient-to-r from-purple-900 to-indigo-950 text-white p-6 sm:p-8 rounded-3xl shadow-lg mb-8">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-400 text-purple-300 text-xs font-bold">Platform Governance</span>
+          <span class="text-xs text-slate-300">System Administrator</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold mt-1">Civic Tech Platform Command Center</h1>
+        <p class="text-xs text-purple-200 mt-1">Supervise municipal departments, verify authorized NGOs, manage categories and platform health.</p>
+      </div>
+
+      <!-- Admin Tabs -->
+      <div class="flex gap-2 mb-6 border-b border-slate-200 pb-2">
+        <button onclick="app.setAdminTab('orgs')" id="admin-tab-orgs" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white">
+          Resolution Organizations (6)
+        </button>
+        <button onclick="app.setAdminTab('categories')" id="admin-tab-categories" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+          Civic Categories & SLAs
+        </button>
+        <button onclick="app.setAdminTab('system')" id="admin-tab-system" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+          System Audit & Logs
+        </button>
+      </div>
+
+      <!-- Tab Content: Organizations Management -->
+      <div id="admin-content-orgs" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-base text-slate-900">Authorized Resolution Bodies & Departments</h3>
+          <button onclick="app.openAddOrgModal()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl">
+            <i data-lucide="plus" class="w-4 h-4"></i> Add Organization
+          </button>
+        </div>
+
+        <div id="admin-orgs-list" class="divide-y divide-slate-100">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Tab Content: Categories & SLAs -->
+      <div id="admin-content-categories" class="hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <h3 class="font-bold text-base text-slate-900 mb-4">Issue Categories & SLA Turnaround Targets</h3>
+        <div id="admin-categories-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Tab Content: System Audit Logs -->
+      <div id="admin-content-system" class="hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <h3 class="font-bold text-base text-slate-900 mb-4">Real-Time Platform Audit Trail</h3>
+        <div id="admin-audit-logs" class="space-y-2 text-xs font-mono">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MOBILE BOTTOM NAVIGATION BAR ================= -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 py-2 px-4 z-40 flex items-center justify-around shadow-lg">
+    <button onclick="app.navigateTo('citizen-dashboard')" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600">
+      <i data-lucide="home" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Home</span>
+    </button>
+    <button onclick="app.navigateTo('map-view')" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600">
+      <i data-lucide="map" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Map</span>
+    </button>
+    <button onclick="app.startReportIssue()" class="flex flex-col items-center -mt-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg shadow-blue-500/30">
+      <i data-lucide="camera" class="w-6 h-6"></i>
+    </button>
+    <button onclick="app.navigateTo('authority-dashboard')" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600">
+      <i data-lucide="shield" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Authority</span>
+    </button>
+    <button onclick="app.toggleNotifications()" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600 relative">
+      <i data-lucide="bell" class="w-5 h-5"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Alerts</span>
+    </button>
+  </nav>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Javascript Modules -->
+  <script src="js/data.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/location.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
