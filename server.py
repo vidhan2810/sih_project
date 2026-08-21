@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CivicPulse - Local Development & Demo Server
+BitAware - Local Development & Demo Server
 Run `python server.py` to start local web server and launch browser automatically.
 """
 
@@ -26,7 +26,7 @@ def run_server():
     with socketserver.TCPServer(("", PORT), handler) as httpd:
         url = f"http://localhost:{PORT}"
         print("=" * 60)
-        print(" CivicPulse — Civic Issue Reporting & Resolution Platform")
+        print(" BitAware — Civic Issue Reporting & Resolution Platform")
         print(f" Server running at: {url}")
         print(" Press Ctrl+C to stop the server.")
         print("=" * 60)

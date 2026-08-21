@@ -38,7 +38,7 @@ const mapModule = {
     // OpenStreetMap high contrast carto tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '© OpenStreetMap contributors | CivicPulse GovTech'
+      attribution: '© OpenStreetMap contributors | BitAware GovTech'
     }).addTo(this.fullMap);
 
     this.renderFullMapMarkers();

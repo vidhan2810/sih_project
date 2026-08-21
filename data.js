@@ -1,11 +1,11 @@
 /**
- * CivicPulse - Data Model and Mock Database Engine
+ * BitAware - Data Model and Mock Database Engine
  * Handles sample seeding, persistent localStorage synchronization, and query utilities.
  */
 
-const STORAGE_KEY_COMPLAINTS = 'civicpulse_complaints_v1';
-const STORAGE_KEY_ORGS = 'civicpulse_orgs_v1';
-const STORAGE_KEY_NOTIFS = 'civicpulse_notifications_v1';
+const STORAGE_KEY_COMPLAINTS = 'bitaware_complaints_v1';
+const STORAGE_KEY_ORGS = 'bitaware_orgs_v1';
+const STORAGE_KEY_NOTIFS = 'bitaware_notifications_v1';
 
 // Preset Categories with icon and designated department
 const CIVIC_CATEGORIES = [
@@ -411,7 +411,9 @@ const dataStore = {
   },
 
   getComplaintById(id) {
-    return this.complaints.find(c => c.id === id);
+    if (!id) return null;
+    const cleanId = id.trim().toUpperCase();
+    return this.complaints.find(c => c.id.toUpperCase() === cleanId || c.id.toUpperCase().includes(cleanId));
   },
 
   addComplaint(complaint) {
@@ -490,6 +492,23 @@ const dataStore = {
   generateComplaintId() {
     const num = this.complaints.length + 107;
     return `CIV-2026-${String(num).padStart(6, '0')}`;
+  },
+
+  registerNewOrg(orgData) {
+    const newOrg = {
+      id: 'org-' + Date.now(),
+      name: orgData.name,
+      shortName: orgData.shortName || orgData.name.substring(0, 15),
+      type: orgData.type || 'Municipal Department / NGO',
+      zone: orgData.zone || 'Metropolitan Area',
+      officerInCharge: orgData.officerInCharge || 'Designated Lead',
+      contact: orgData.contact || '+91 11 0000 0000',
+      verified: true,
+      activeTickets: 0
+    };
+    this.orgs.push(newOrg);
+    this.saveOrgs();
+    return newOrg;
   },
 
   resetToDefaults() {
