@@ -1,6 +1,6 @@
 /**
- * BitAware - Live Camera Capture Module
- * Implements WebRTC camera streaming, front/rear switcher, snapshot watermarking, and file fallback.
+ * BitAware - Live Camera Capture Module (Production Fix)
+ * Implements resilient getUserMedia streaming, fallback constraints, and snapshot watermarking.
  */
 
 const cameraModule = {
@@ -9,7 +9,7 @@ const cameraModule = {
   capturedImageData: null,
   isLiveCapture: false,
 
-  // Preset realistic high-res civic issue images for quick testing
+  // Preset realistic high-res civic issue images for fallback / desktop testing
   presetImages: [
     'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80', // Pothole
     'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80', // Garbage
@@ -28,33 +28,47 @@ const cameraModule = {
     try {
       this.stopCamera();
 
-      const constraints = {
-        video: {
-          facingMode: this.facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API not supported in this environment.');
+      }
+
+      // Resilient constraints to prevent OverconstrainedError on mobile/desktop
+      let constraints = {
+        video: { facingMode: this.facingMode },
         audio: false
       };
 
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not supported in this browser. Please use file upload or preset.');
+      try {
+        // Attempt high-res preferred constraints first
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: this.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+      } catch (innerErr) {
+        // Fallback to basic video stream if ideal resolution fails
+        console.warn('Ideal resolution constraint failed, falling back to default video stream:', innerErr);
+        this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
 
-      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = this.stream;
+      
+      // Ensure video plays properly on mobile inline
+      video.setAttribute('autoplay', '');
+      video.setAttribute('playsinline', '');
+      await video.play().catch(e => console.warn("Auto-play prevented or deferred:", e));
+
       video.classList.remove('hidden');
       placeholder.classList.add('hidden');
       preview.classList.add('hidden');
       
-      btnInit.classList.add('hidden');
-      btnStreaming.classList.remove('hidden');
-      overlay.classList.remove('hidden');
+      if (btnInit) btnInit.classList.add('hidden');
+      if (btnStreaming) btnStreaming.classList.remove('hidden');
+      if (overlay) overlay.classList.remove('hidden');
 
       if (window.app) window.app.showToast('Camera active. Tap "Snap Photo Now".', 'info');
     } catch (err) {
       console.warn('Live camera access failed/declined:', err);
-      if (window.app) window.app.showToast('Camera access unavailable. Falling back to preset sample photo.', 'warning');
+      if (window.app) window.app.showToast('Camera access unavailable. Loading sample photo.', 'warning');
       this.loadPresetCivicPhoto();
     }
   },
@@ -89,7 +103,7 @@ const cameraModule = {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Canvas Watermark
+    // Canvas Watermark Stamps
     const nowStr = new Date().toLocaleString();
     const lat = (window.locationModule && window.locationModule.currentLat) ? window.locationModule.currentLat : 28.6139;
     const lng = (window.locationModule && window.locationModule.currentLng) ? window.locationModule.currentLng : 77.2090;
@@ -111,10 +125,10 @@ const cameraModule = {
     preview.src = this.capturedImageData;
     preview.classList.remove('hidden');
     video.classList.add('hidden');
-    overlay.classList.add('hidden');
+    if (overlay) overlay.classList.add('hidden');
 
-    btnStreaming.classList.add('hidden');
-    btnPreview.classList.remove('hidden');
+    if (btnStreaming) btnStreaming.classList.add('hidden');
+    if (btnPreview) btnPreview.classList.remove('hidden');
 
     this.stopCamera();
     this.updateWatermarkBadge(lat, lng);
@@ -139,7 +153,7 @@ const cameraModule = {
     this.capturedImageData = sampleUrl;
     this.isLiveCapture = true;
     this.displayPreview(sampleUrl, true);
-    if (window.app) window.app.showToast('Sample civic hazard photo loaded.', 'info');
+    if (window.app) window.app.showToast('Sample civic hazard photo loaded for testing.', 'info');
   },
 
   displayPreview(imageUrl, isVerified = true) {
@@ -153,15 +167,17 @@ const cameraModule = {
 
     this.stopCamera();
 
-    placeholder.classList.add('hidden');
-    video.classList.add('hidden');
-    overlay.classList.add('hidden');
-    btnInit.classList.add('hidden');
-    btnStreaming.classList.add('hidden');
+    if (placeholder) placeholder.classList.add('hidden');
+    if (video) video.classList.add('hidden');
+    if (overlay) overlay.classList.add('hidden');
+    if (btnInit) btnInit.classList.add('hidden');
+    if (btnStreaming) btnStreaming.classList.add('hidden');
 
-    preview.src = imageUrl;
-    preview.classList.remove('hidden');
-    btnPreview.classList.remove('hidden');
+    if (preview) {
+      preview.src = imageUrl;
+      preview.classList.remove('hidden');
+    }
+    if (btnPreview) btnPreview.classList.remove('hidden');
 
     const lat = (window.locationModule && window.locationModule.currentLat) ? window.locationModule.currentLat : 28.6139;
     const lng = (window.locationModule && window.locationModule.currentLng) ? window.locationModule.currentLng : 77.2090;
@@ -188,11 +204,11 @@ const cameraModule = {
     const btnPreview = document.getElementById('camera-btn-group-preview');
     const watermarkBadge = document.getElementById('photo-watermark-badge');
 
-    preview.classList.add('hidden');
+    if (preview) preview.classList.add('hidden');
     if (watermarkBadge) watermarkBadge.classList.add('hidden');
-    placeholder.classList.remove('hidden');
-    btnPreview.classList.add('hidden');
-    btnInit.classList.remove('hidden');
+    if (placeholder) placeholder.classList.remove('hidden');
+    if (btnPreview) btnPreview.classList.add('hidden');
+    if (btnInit) btnInit.classList.remove('hidden');
 
     this.startCamera();
   },
@@ -212,4 +228,5 @@ const cameraModule = {
 };
 
 // Expose explicitly to window
+window.cameraNumber = cameraModule;
 window.cameraModule = cameraModule;
