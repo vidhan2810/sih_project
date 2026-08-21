@@ -9,6 +9,10 @@ const analyticsModule = {
   velocityChart: null,
 
   renderCharts() {
+    if (typeof Chart === 'undefined') {
+      console.warn('Chart.js not loaded yet');
+      return;
+    }
     this.renderCategoryChart();
     this.renderStatusChart();
     this.renderVelocityChart();
@@ -16,7 +20,7 @@ const analyticsModule = {
 
   renderCategoryChart() {
     const canvas = document.getElementById('chart-categories');
-    if (!canvas) return;
+    if (!canvas || typeof Chart === 'undefined') return;
 
     const complaints = dataStore.getAllComplaints();
     const counts = {};
@@ -155,3 +159,4 @@ const analyticsModule = {
     });
   }
 };
+window.analyticsModule = analyticsModule;
