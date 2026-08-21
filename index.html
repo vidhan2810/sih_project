@@ -82,9 +82,6 @@
 
         <!-- Desktop Navigation Links -->
         <nav class="hidden md:flex items-center gap-1">
-          <button onclick="app.navigateTo('landing')" id="nav-landing" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            Home
-          </button>
           <button onclick="app.navigateTo('citizen-dashboard')" id="nav-citizen-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
             Citizen Portal
           </button>
@@ -94,40 +91,10 @@
           <button onclick="app.navigateTo('map-view')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
             Live Civic Map
           </button>
-          <button onclick="app.navigateTo('admin-dashboard')" id="nav-admin-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            Admin
-          </button>
         </nav>
 
-        <!-- Right Quick Actions & Role Switcher -->
+        <!-- Right Quick Actions -->
         <div class="flex items-center gap-3">
-          
-          <!-- Role Switcher Dropdown (for testing and role demonstration) -->
-          <div class="relative">
-            <button id="role-selector-btn" onclick="app.toggleRoleMenu()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span id="current-role-label">Role: Citizen</span>
-              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500"></i>
-            </button>
-            <div id="role-menu" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 text-xs font-medium">
-              <div class="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400">Switch Active Persona</div>
-              <button onclick="app.switchRole('citizen')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="user" class="w-4 h-4 text-blue-500"></i> Citizen (Rahul Sharma)
-              </button>
-              <button onclick="app.switchRole('authority-pwd')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="hard-hat" class="w-4 h-4 text-amber-500"></i> Municipality (PWD & Roads)
-              </button>
-              <button onclick="app.switchRole('authority-waste')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="trash-2" class="w-4 h-4 text-emerald-500"></i> Municipality (Solid Waste)
-              </button>
-              <button onclick="app.switchRole('authority-water')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="droplet" class="w-4 h-4 text-cyan-500"></i> Municipality (Water Board)
-              </button>
-              <button onclick="app.switchRole('admin')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-4 h-4 text-purple-500"></i> Platform Administrator
-              </button>
-            </div>
-          </div>
 
           <!-- Notification Bell -->
           <button onclick="app.toggleNotifications()" class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
