@@ -5,7 +5,7 @@
  */
 
 const app = {
-  currentRole: 'citizen', // 'citizen', 'authority-pwd', 'authority-waste', 'authority-water', 'admin'
+  currentRole: 'citizen',
   currentView: 'landing',
   previousView: 'landing',
   activeComplaintId: null,
@@ -19,21 +19,21 @@ const app = {
     this.updateRoleUI();
     this.navigateTo('landing');
 
-    // Initial Lucide Icons Render
-    if (window.lucide) {
-      lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try {
+        window.lucide.createIcons();
+      } catch (e) {
+        console.warn('Lucide icon rendering deferred:', e);
+      }
     }
   },
 
-  // Navigation Controller
   navigateTo(viewId) {
     this.previousView = this.currentView;
     this.currentView = viewId;
 
-    // Hide all view sections
     document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
 
-    // Highlight active desktop nav link
     document.querySelectorAll('.nav-link').forEach(link => {
       link.classList.remove('bg-blue-50', 'text-blue-600', 'font-bold');
       link.classList.add('text-slate-600');
@@ -45,47 +45,44 @@ const app = {
       activeNav.classList.remove('text-slate-600');
     }
 
-    // Show target section
     const target = document.getElementById(`view-${viewId}`);
     if (target) {
       target.classList.remove('hidden');
       target.classList.add('animate-fadeIn');
     }
 
-    // Trigger view-specific renderers
     if (viewId === 'citizen-dashboard') {
       this.renderCitizenDashboard();
     } else if (viewId === 'authority-dashboard') {
       this.renderAuthorityDashboard();
     } else if (viewId === 'map-view') {
       setTimeout(() => {
-        mapModule.initFullMap();
+        if (window.mapModule) window.mapModule.initFullMap();
       }, 100);
     } else if (viewId === 'admin-dashboard') {
       this.renderAdminDashboard();
     }
 
-    // Refresh icons
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      try { window.lucide.createIcons(); } catch(e) {}
+    }
 
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
-  // Role Management
   toggleRoleMenu() {
     const menu = document.getElementById('role-menu');
-    menu.classList.toggle('hidden');
+    if (menu) menu.classList.toggle('hidden');
   },
 
   switchRole(newRole) {
     this.currentRole = newRole;
     this.updateRoleUI();
-    this.toggleRoleMenu();
+    const menu = document.getElementById('role-menu');
+    if (menu) menu.classList.add('hidden');
 
     this.showToast(`Active persona: ${this.getRoleDisplayName(newRole)}`, 'info');
 
-    // Auto-navigate to appropriate workspace
     if (newRole === 'citizen') {
       this.navigateTo('citizen-dashboard');
     } else if (newRole.startsWith('authority')) {
@@ -98,9 +95,9 @@ const app = {
   getRoleDisplayName(role) {
     switch (role) {
       case 'citizen': return 'Citizen (Rahul Sharma)';
-      case 'authority-pwd': return 'Authority (PWD & Roads)';
-      case 'authority-waste': return 'Authority (Solid Waste)';
-      case 'authority-water': return 'Authority (Water Board)';
+      case 'authority-pwd': return 'Municipality (PWD & Roads)';
+      case 'authority-waste': return 'Municipality (Solid Waste)';
+      case 'authority-water': return 'Municipality (Water Board)';
       case 'admin': return 'Platform Administrator';
       default: return 'User';
     }
@@ -112,7 +109,6 @@ const app = {
       label.innerText = this.getRoleDisplayName(this.currentRole);
     }
 
-    // Update Authority Dashboard titles based on active dept
     const authTitle = document.getElementById('auth-org-title');
     const authBadge = document.getElementById('auth-org-badge');
 
@@ -130,11 +126,9 @@ const app = {
     }
   },
 
-  // ================= CITIZEN PORTAL =================
   renderCitizenDashboard() {
-    const complaints = dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
+    const complaints = window.dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
     
-    // Calculate statistics
     const total = complaints.length;
     const resolved = complaints.filter(c => c.status === 'Resolved' || c.status === 'Closed').length;
     const inProgress = complaints.filter(c => c.status === 'In Progress' || c.status === 'Assigned').length;
@@ -158,7 +152,7 @@ const app = {
     const container = document.getElementById('citizen-complaints-list');
     if (!container) return;
 
-    let complaints = dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
+    let complaints = window.dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
 
     if (filter !== 'all') {
       complaints = complaints.filter(c => c.status === filter);
@@ -176,7 +170,7 @@ const app = {
     }
 
     container.innerHTML = complaints.map(c => {
-      const color = mapModule.statusColors[c.status]?.bg || '#3b82f6';
+      const color = window.mapModule.statusColors[c.status]?.bg || '#3b82f6';
       return `
         <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer" onclick="app.viewComplaintDetails('${c.id}')">
           <div class="flex items-start gap-4">
@@ -210,7 +204,6 @@ const app = {
     if (window.lucide) lucide.createIcons();
   },
 
-  // ================= TICKET SEARCH TRACKER =================
   trackTicketById(customInputId) {
     const input = document.getElementById(customInputId || 'home-track-input');
     const ticketId = input ? input.value.trim() : '';
@@ -220,7 +213,7 @@ const app = {
       return;
     }
 
-    const complaint = dataStore.getComplaintById(ticketId);
+    const complaint = window.dataStore.getComplaintById(ticketId);
     if (complaint) {
       this.showToast(`Found Ticket ${complaint.id}!`, 'success');
       this.viewComplaintDetails(complaint.id);
@@ -229,23 +222,21 @@ const app = {
     }
   },
 
-  // ================= REPORT ISSUE WIZARD =================
   startReportIssue() {
     this.navigateTo('report-wizard');
     this.resetReportWizard();
     this.wizardShowStep(1);
 
-    // Prompt location detection early
-    locationModule.detectLiveGPS();
+    if (window.locationModule) window.locationModule.detectLiveGPS();
   },
 
   cancelReportWizard() {
-    cameraModule.stopCamera();
+    if (window.cameraModule) window.cameraModule.stopCamera();
     this.navigateTo(this.previousView || 'citizen-dashboard');
   },
 
   resetReportWizard() {
-    cameraModule.reset();
+    if (window.cameraModule) window.cameraModule.reset();
     document.getElementById('wizard-title-input').value = '';
     document.getElementById('wizard-desc-input').value = '';
     document.getElementById('wizard-success').classList.add('hidden');
@@ -256,7 +247,6 @@ const app = {
     document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('hidden'));
     document.getElementById(`wizard-step-${stepNum}`).classList.remove('hidden');
 
-    // Update Progress Bar
     const progressPercents = ['25%', '50%', '75%', '100%'];
     document.getElementById('step-bar-progress').style.width = progressPercents[stepNum - 1];
 
@@ -273,7 +263,7 @@ const app = {
 
     if (stepNum === 2) {
       setTimeout(() => {
-        mapModule.initWizardMap();
+        if (window.mapModule) window.mapModule.initWizardMap();
       }, 150);
     } else if (stepNum === 4) {
       this.populateReviewStep();
@@ -284,9 +274,9 @@ const app = {
 
   wizardNext(nextStep) {
     if (nextStep === 2) {
-      if (!cameraModule.capturedImageData) {
+      if (!window.cameraModule || !window.cameraModule.capturedImageData) {
         this.showToast('Please capture or select a photo of the civic issue.', 'warning');
-        cameraModule.loadPresetCivicPhoto();
+        if (window.cameraModule) window.cameraModule.loadPresetCivicPhoto();
         return;
       }
     } else if (nextStep === 4) {
@@ -314,7 +304,7 @@ const app = {
     const grid = document.getElementById('category-selector-grid');
     if (!grid) return;
 
-    grid.innerHTML = CIVIC_CATEGORIES.map(cat => `
+    grid.innerHTML = window.CIVIC_CATEGORIES.map(cat => `
       <div id="cat-card-${cat.id}" onclick="app.selectCategory('${cat.id}')" class="category-card p-3 rounded-2xl border ${this.selectedCategory === cat.id ? 'border-blue-600 bg-blue-50/80 text-blue-900 font-bold shadow-sm' : 'border-slate-200 bg-white text-slate-700 font-medium'} flex items-center gap-2.5 cursor-pointer hover:border-blue-300 transition">
         <div class="w-8 h-8 rounded-xl ${this.selectedCategory === cat.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600'} flex items-center justify-center flex-shrink-0">
           <i data-lucide="${cat.icon}" class="w-4 h-4"></i>
@@ -335,15 +325,15 @@ const app = {
   },
 
   populateReviewStep() {
-    const category = CIVIC_CATEGORIES.find(c => c.id === this.selectedCategory) || CIVIC_CATEGORIES[0];
+    const category = window.CIVIC_CATEGORIES.find(c => c.id === this.selectedCategory) || window.CIVIC_CATEGORIES[0];
     const title = document.getElementById('wizard-title-input').value.trim();
     const desc = document.getElementById('wizard-desc-input').value.trim();
     const priority = document.querySelector('input[name="wizard-priority"]:checked')?.value || 'Medium';
 
-    document.getElementById('review-photo').src = cameraModule.capturedImageData;
+    document.getElementById('review-photo').src = window.cameraModule.capturedImageData;
     document.getElementById('review-category-badge').innerText = category.name;
     document.getElementById('review-title').innerText = title || 'Untitled Civic Issue';
-    document.getElementById('review-address').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500"></i> ${locationModule.currentAddress}`;
+    document.getElementById('review-address').innerHTML = `<i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500"></i> ${window.locationModule.currentAddress}`;
     document.getElementById('review-priority').innerText = priority;
     document.getElementById('review-desc').innerText = `"${desc}"`;
     document.getElementById('review-target-dept').innerText = category.dept;
@@ -356,11 +346,11 @@ const app = {
     submitBtn.disabled = true;
     submitBtn.innerHTML = `<span class="animate-spin mr-2">⏳</span> Registering Ticket...`;
 
-    const category = CIVIC_CATEGORIES.find(c => c.id === this.selectedCategory) || CIVIC_CATEGORIES[0];
+    const category = window.CIVIC_CATEGORIES.find(c => c.id === this.selectedCategory) || window.CIVIC_CATEGORIES[0];
     const title = document.getElementById('wizard-title-input').value.trim();
     const desc = document.getElementById('wizard-desc-input').value.trim();
     const priority = document.querySelector('input[name="wizard-priority"]:checked')?.value || 'Medium';
-    const newId = dataStore.generateComplaintId();
+    const newId = window.dataStore.generateComplaintId();
 
     const newComplaint = {
       id: newId,
@@ -375,11 +365,11 @@ const app = {
       assignedOrgId: 'org-pwd',
       assignedOrgName: category.dept,
       location: {
-        lat: locationModule.currentLat,
-        lng: locationModule.currentLng,
-        address: locationModule.currentAddress
+        lat: window.locationModule.currentLat,
+        lng: window.locationModule.currentLng,
+        address: window.locationModule.currentAddress
       },
-      photoBefore: cameraModule.capturedImageData,
+      photoBefore: window.cameraModule.capturedImageData,
       photoAfter: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -394,13 +384,12 @@ const app = {
     };
 
     setTimeout(() => {
-      dataStore.addComplaint(newComplaint);
+      window.dataStore.addComplaint(newComplaint);
       this.latestSubmittedId = newId;
 
       submitBtn.disabled = false;
       submitBtn.innerHTML = `<span>Confirm & Submit</span>`;
 
-      // Show Success Screen
       document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('hidden'));
       document.getElementById('wizard-success').classList.remove('hidden');
       document.getElementById('success-complaint-id').innerText = newId;
@@ -410,9 +399,8 @@ const app = {
     }, 600);
   },
 
-  // ================= COMPLAINT DETAILS & TIMELINE =================
   viewComplaintDetails(complaintId) {
-    const complaint = dataStore.getComplaintById(complaintId);
+    const complaint = window.dataStore.getComplaintById(complaintId);
     if (!complaint) {
       this.showToast('Complaint not found.', 'warning');
       return;
@@ -430,17 +418,14 @@ const app = {
     document.getElementById('detail-reporter').innerText = `${complaint.citizenName} (Verified Citizen)`;
     document.getElementById('detail-address-text').innerText = complaint.location.address;
 
-    // Status Pill
     const statusPill = document.getElementById('detail-status-pill');
     statusPill.innerText = complaint.status;
-    statusPill.style.backgroundColor = mapModule.statusColors[complaint.status]?.bg || '#3b82f6';
+    statusPill.style.backgroundColor = window.mapModule.statusColors[complaint.status]?.bg || '#3b82f6';
     statusPill.style.color = '#ffffff';
 
-    // Priority Pill
     const priorityPill = document.getElementById('detail-priority-pill');
     priorityPill.innerText = `${complaint.priority} Priority`;
 
-    // Photos
     document.getElementById('detail-photo-before').src = complaint.photoBefore;
     const photoAfter = document.getElementById('detail-photo-after');
     const photoPlaceholder = document.getElementById('detail-photo-after-placeholder');
@@ -459,13 +444,9 @@ const app = {
       evidenceBadge.className = 'text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded';
     }
 
-    // Mini Map
-    mapModule.initDetailMiniMap(complaint.location.lat, complaint.location.lng);
-
-    // Render Timeline
+    window.mapModule.initDetailMiniMap(complaint.location.lat, complaint.location.lng);
     this.renderTimelineFlow(complaint.timeline);
 
-    // Set select box for authority
     const statusSelect = document.getElementById('action-status-select');
     if (statusSelect) statusSelect.value = complaint.status;
 
@@ -477,7 +458,7 @@ const app = {
     if (!container) return;
 
     container.innerHTML = timeline.map((event, idx) => {
-      const color = mapModule.statusColors[event.status]?.bg || '#3b82f6';
+      const color = window.mapModule.statusColors[event.status]?.bg || '#3b82f6';
       return `
         <div class="relative pl-6 pb-2 group">
           <span class="absolute -left-[7px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style="background-color: ${color}"></span>
@@ -496,7 +477,6 @@ const app = {
     this.navigateTo(this.previousView || 'citizen-dashboard');
   },
 
-  // Authority Action Execution
   handleEvidenceUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -521,7 +501,7 @@ const app = {
 
     if (!this.activeComplaintId) return;
 
-    const success = dataStore.updateComplaintStatus(
+    const success = window.dataStore.updateComplaintStatus(
       this.activeComplaintId,
       status,
       note || `Status updated to ${status} following on-site protocol.`,
@@ -538,9 +518,8 @@ const app = {
     }
   },
 
-  // ================= AUTHORITY DASHBOARD =================
   renderAuthorityDashboard() {
-    const complaints = dataStore.getAllComplaints();
+    const complaints = window.dataStore.getAllComplaints();
 
     const assigned = complaints.length;
     const newItems = complaints.filter(c => c.status === 'Submitted').length;
@@ -560,7 +539,7 @@ const app = {
     if (elRes) elRes.innerText = resolved;
     if (elUrg) elUrg.innerText = urgent;
 
-    analyticsModule.renderCharts();
+    if (window.analyticsModule) window.analyticsModule.renderCharts();
     this.renderAuthorityQueue();
   },
 
@@ -570,7 +549,7 @@ const app = {
     const tbody = document.getElementById('auth-queue-table-body');
     if (!tbody) return;
 
-    let complaints = dataStore.getAllComplaints();
+    let complaints = window.dataStore.getAllComplaints();
 
     if (statusFilter !== 'all') {
       complaints = complaints.filter(c => c.status === statusFilter);
@@ -585,7 +564,7 @@ const app = {
     }
 
     tbody.innerHTML = complaints.map(c => {
-      const color = mapModule.statusColors[c.status]?.bg || '#3b82f6';
+      const color = window.mapModule.statusColors[c.status]?.bg || '#3b82f6';
       const prioColor = c.priority === 'High' ? 'text-rose-600 bg-rose-50' : c.priority === 'Medium' ? 'text-amber-600 bg-amber-50' : 'text-slate-600 bg-slate-50';
       return `
         <tr class="hover:bg-slate-50 transition">
@@ -614,7 +593,6 @@ const app = {
     }).join('');
   },
 
-  // ================= ADMIN DASHBOARD =================
   renderAdminDashboard() {
     this.renderAdminOrgs();
     this.renderAdminCategories();
@@ -637,7 +615,7 @@ const app = {
     const list = document.getElementById('admin-orgs-list');
     if (!list) return;
 
-    list.innerHTML = INITIAL_ORGS.map(org => `
+    list.innerHTML = window.INITIAL_ORGS.map(org => `
       <div class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
@@ -658,7 +636,7 @@ const app = {
     const list = document.getElementById('admin-categories-list');
     if (!list) return;
 
-    list.innerHTML = CIVIC_CATEGORIES.map(c => `
+    list.innerHTML = window.CIVIC_CATEGORIES.map(c => `
       <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
@@ -683,7 +661,7 @@ const app = {
     const container = document.getElementById('admin-audit-logs');
     if (!container) return;
 
-    const complaints = dataStore.getAllComplaints();
+    const complaints = window.dataStore.getAllComplaints();
     const logs = [];
 
     complaints.forEach(c => {
@@ -702,7 +680,6 @@ const app = {
     `).join('');
   },
 
-  // Organization Registration Modal
   openAddOrgModal() {
     const modal = document.getElementById('register-org-modal');
     if (modal) modal.classList.remove('hidden');
@@ -725,7 +702,7 @@ const app = {
       return;
     }
 
-    dataStore.registerNewOrg({
+    window.dataStore.registerNewOrg({
       name: name,
       type: type,
       zone: zone || 'Metropolitan Ward 1-10',
@@ -738,10 +715,9 @@ const app = {
     this.renderAdminOrgs();
   },
 
-  // ================= NOTIFICATIONS DRAWER =================
   toggleNotifications() {
     const drawer = document.getElementById('notifications-drawer');
-    drawer.classList.toggle('hidden');
+    if (drawer) drawer.classList.toggle('hidden');
     this.renderNotificationsList();
   },
 
@@ -750,7 +726,7 @@ const app = {
     const badge = document.getElementById('notif-badge');
     if (!list) return;
 
-    const notifs = dataStore.notifications;
+    const notifs = window.dataStore.notifications;
     const unreadCount = notifs.filter(n => !n.read).length;
 
     if (badge) {
@@ -786,12 +762,11 @@ const app = {
   },
 
   markAllNotificationsRead() {
-    dataStore.markAllRead();
+    window.dataStore.markAllRead();
     this.renderNotificationsList();
     this.showToast('All notifications marked as read', 'info');
   },
 
-  // Toast Notifications
   showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -805,9 +780,7 @@ const app = {
     };
 
     toast.className = `px-4 py-3 rounded-2xl shadow-xl ${bgColors[type] || bgColors.info} text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
-    toast.innerHTML = `
-      <span>${message}</span>
-    `;
+    toast.innerHTML = `<span>${message}</span>`;
 
     container.appendChild(toast);
 
@@ -822,7 +795,14 @@ const app = {
   }
 };
 
-// Initialize App on DOM Ready
-window.addEventListener('DOMContentLoaded', () => {
+// Expose explicitly to global window
+window.app = app;
+
+// Initialize App safely on DOM Ready or immediately if DOM is already loaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+  });
+} else {
   app.init();
-});
+}

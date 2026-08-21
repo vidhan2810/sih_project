@@ -1,5 +1,5 @@
 /**
- * CivicPulse - Live Camera Capture Module
+ * BitAware - Live Camera Capture Module
  * Implements WebRTC camera streaming, front/rear switcher, snapshot watermarking, and file fallback.
  */
 
@@ -26,7 +26,7 @@ const cameraModule = {
     const preview = document.getElementById('photo-preview');
 
     try {
-      this.stopCamera(); // Clean any previous stream
+      this.stopCamera();
 
       const constraints = {
         video: {
@@ -51,10 +51,10 @@ const cameraModule = {
       btnStreaming.classList.remove('hidden');
       overlay.classList.remove('hidden');
 
-      app.showToast('Camera active. Tap "Snap Photo Now".', 'info');
+      if (window.app) window.app.showToast('Camera active. Tap "Snap Photo Now".', 'info');
     } catch (err) {
       console.warn('Live camera access failed/declined:', err);
-      app.showToast('Camera access unavailable. Falling back to preset sample photo.', 'warning');
+      if (window.app) window.app.showToast('Camera access unavailable. Falling back to preset sample photo.', 'warning');
       this.loadPresetCivicPhoto();
     }
   },
@@ -71,31 +71,28 @@ const cameraModule = {
     const btnStreaming = document.getElementById('camera-btn-group-streaming');
     const btnPreview = document.getElementById('camera-btn-group-preview');
     const overlay = document.getElementById('camera-live-overlay');
-    const watermarkBadge = document.getElementById('photo-watermark-badge');
 
     if (!video || video.videoWidth === 0) {
       this.loadPresetCivicPhoto();
       return;
     }
 
-    // Trigger visual shutter flash effect
+    // Shutter flash effect
     const flash = document.createElement('div');
     flash.className = 'camera-shutter-flash';
     video.parentElement.appendChild(flash);
     setTimeout(() => flash.remove(), 300);
 
-    // Setup canvas dimensions
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
 
-    // Draw video frame to canvas
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Render Canvas Watermark (Timestamp, GPS coords, CivicPulse Verified)
+    // Canvas Watermark
     const nowStr = new Date().toLocaleString();
-    const lat = locationModule.currentLat || 28.6139;
-    const lng = locationModule.currentLng || 77.2090;
+    const lat = (window.locationModule && window.locationModule.currentLat) ? window.locationModule.currentLat : 28.6139;
+    const lng = (window.locationModule && window.locationModule.currentLng) ? window.locationModule.currentLng : 77.2090;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
     ctx.fillRect(0, canvas.height - 44, canvas.width, 44);
@@ -108,11 +105,9 @@ const cameraModule = {
     ctx.fillStyle = '#ffffff';
     ctx.fillText(`GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)} | ${nowStr}`, 140, canvas.height - 18);
 
-    // Convert to high-quality JPEG Data URL
     this.capturedImageData = canvas.toDataURL('image/jpeg', 0.85);
     this.isLiveCapture = true;
 
-    // Display preview
     preview.src = this.capturedImageData;
     preview.classList.remove('hidden');
     video.classList.add('hidden');
@@ -121,12 +116,9 @@ const cameraModule = {
     btnStreaming.classList.add('hidden');
     btnPreview.classList.remove('hidden');
 
-    // Stop active camera stream to release hardware
     this.stopCamera();
-
-    // Update watermark badge
     this.updateWatermarkBadge(lat, lng);
-    app.showToast('Photo captured with verified GPS stamp!', 'success');
+    if (window.app) window.app.showToast('Photo captured with verified GPS stamp!', 'success');
   },
 
   handleFileUpload(event) {
@@ -147,7 +139,7 @@ const cameraModule = {
     this.capturedImageData = sampleUrl;
     this.isLiveCapture = true;
     this.displayPreview(sampleUrl, true);
-    app.showToast('Sample civic hazard photo loaded.', 'info');
+    if (window.app) window.app.showToast('Sample civic hazard photo loaded.', 'info');
   },
 
   displayPreview(imageUrl, isVerified = true) {
@@ -171,8 +163,8 @@ const cameraModule = {
     preview.classList.remove('hidden');
     btnPreview.classList.remove('hidden');
 
-    const lat = locationModule.currentLat || 28.6139;
-    const lng = locationModule.currentLng || 77.2090;
+    const lat = (window.locationModule && window.locationModule.currentLat) ? window.locationModule.currentLat : 28.6139;
+    const lng = (window.locationModule && window.locationModule.currentLng) ? window.locationModule.currentLng : 77.2090;
     this.updateWatermarkBadge(lat, lng, isVerified);
   },
 
@@ -218,3 +210,6 @@ const cameraModule = {
     this.isLiveCapture = false;
   }
 };
+
+// Expose explicitly to window
+window.cameraModule = cameraModule;

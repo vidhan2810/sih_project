@@ -158,6 +158,6 @@
 /* Responsive Touch Target Size for Mobile */
 @media (max-width: 640px) {
   button, input, select, textarea {
-    font-size: 16px !important; /* Prevents iOS auto-zoom on input focus */
+    font-size: 16px !important;
   }
 }

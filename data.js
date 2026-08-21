@@ -318,7 +318,7 @@ const INITIAL_COMPLAINTS = [
   }
 ];
 
-// Initial In-App Notifications
+// Initial Notifications
 const INITIAL_NOTIFICATIONS = [
   {
     id: 'notif-1',
@@ -356,7 +356,6 @@ const dataStore = {
   notifications: [],
 
   init() {
-    // Load from localStorage or seed
     const cachedComplaints = localStorage.getItem(STORAGE_KEY_COMPLAINTS);
     if (cachedComplaints) {
       try {
@@ -420,7 +419,6 @@ const dataStore = {
     this.complaints.unshift(complaint);
     this.saveComplaints();
 
-    // Add corresponding notification
     this.addNotification({
       title: 'Complaint Registered',
       message: `Your issue "${complaint.title.substring(0, 30)}..." has been logged as ${complaint.id}.`,
@@ -459,7 +457,6 @@ const dataStore = {
 
     this.saveComplaints();
 
-    // Add alert notification
     this.addNotification({
       title: `Status: ${newStatus}`,
       message: `Complaint ${complaint.id} was updated to "${newStatus}" by ${actorName || 'Authority'}.`,
@@ -521,3 +518,9 @@ const dataStore = {
 
 // Initialize on script load
 dataStore.init();
+
+// Expose explicitly to window
+window.dataStore = dataStore;
+window.CIVIC_CATEGORIES = CIVIC_CATEGORIES;
+window.INITIAL_ORGS = INITIAL_ORGS;
+window.INITIAL_COMPLAINTS = INITIAL_COMPLAINTS;

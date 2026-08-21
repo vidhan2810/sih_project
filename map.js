@@ -1,5 +1,5 @@
 /**
- * CivicPulse - Leaflet Map Subsystem
+ * BitAware - Leaflet Map Subsystem
  * Manages full interactive map, marker styling, popups, and wizard draggable location pins.
  */
 
@@ -10,7 +10,6 @@ const mapModule = {
   wizardMarker: null,
   fullMapMarkers: [],
 
-  // Status to marker class & hex color mapping
   statusColors: {
     'Submitted': { bg: '#ef4444', label: '🔴 New' },
     'Under Review': { bg: '#f97316', label: '🟠 Under Review' },
@@ -20,38 +19,39 @@ const mapModule = {
     'Closed': { bg: '#64748b', label: '⚫ Closed' }
   },
 
-  // Initialize or re-center Full Civic Map
   initFullMap() {
     const mapContainer = document.getElementById('full-interactive-map');
-    if (!mapContainer) return;
+    if (!mapContainer || typeof L === 'undefined') return;
 
     if (this.fullMap) {
-      setTimeout(() => this.fullMap.invalidateSize(), 200);
+      setTimeout(() => this.fullMap && this.fullMap.invalidateSize(), 200);
       return;
     }
 
     const defaultLat = 28.6139;
     const defaultLng = 77.2090;
 
-    this.fullMap = L.map('full-interactive-map').setView([defaultLat, defaultLng], 14);
+    try {
+      this.fullMap = L.map('full-interactive-map').setView([defaultLat, defaultLng], 14);
 
-    // OpenStreetMap high contrast carto tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors | BitAware GovTech'
-    }).addTo(this.fullMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors | BitAware GovTech'
+      }).addTo(this.fullMap);
 
-    this.renderFullMapMarkers();
+      this.renderFullMapMarkers();
+    } catch (e) {
+      console.warn('Map initialization deferred:', e);
+    }
   },
 
   renderFullMapMarkers(statusFilter = 'all') {
-    if (!this.fullMap) return;
+    if (!this.fullMap || typeof L === 'undefined') return;
 
-    // Clear existing markers
     this.fullMapMarkers.forEach(m => this.fullMap.removeLayer(m));
     this.fullMapMarkers = [];
 
-    const complaints = dataStore.getAllComplaints();
+    const complaints = window.dataStore.getAllComplaints();
 
     complaints.forEach(item => {
       if (statusFilter !== 'all' && item.status !== statusFilter) return;
@@ -72,7 +72,6 @@ const mapModule = {
 
       const marker = L.marker([item.location.lat, item.location.lng], { icon: customIcon }).addTo(this.fullMap);
 
-      // Interactive Popup Content
       const popupHtml = `
         <div class="w-64 text-slate-800 font-sans">
           <div class="relative h-28 bg-slate-900 overflow-hidden">
@@ -106,91 +105,99 @@ const mapModule = {
 
   filterMapMarkers(status) {
     this.renderFullMapMarkers(status);
-    app.showToast(`Showing ${status === 'all' ? 'All' : status} complaints on map`, 'info');
+    if (window.app) window.app.showToast(`Showing ${status === 'all' ? 'All' : status} complaints on map`, 'info');
   },
 
-  // Setup Wizard Map for Step 2 with Draggable Pin
   initWizardMap() {
     const container = document.getElementById('wizard-leaflet-map');
-    if (!container) return;
+    if (!container || typeof L === 'undefined') return;
 
-    const lat = locationModule.currentLat || 28.6139;
-    const lng = locationModule.currentLng || 77.2090;
+    const lat = (window.locationModule && window.locationModule.currentLat) ? window.locationModule.currentLat : 28.6139;
+    const lng = (window.locationModule && window.locationModule.currentLng) ? window.locationModule.currentLng : 77.2090;
 
     if (this.wizardMap) {
       this.wizardMap.setView([lat, lng], 16);
       if (this.wizardMarker) {
         this.wizardMarker.setLatLng([lat, lng]);
       }
-      setTimeout(() => this.wizardMap.invalidateSize(), 250);
+      setTimeout(() => this.wizardMap && this.wizardMap.invalidateSize(), 250);
       return;
     }
 
-    this.wizardMap = L.map('wizard-leaflet-map').setView([lat, lng], 16);
+    try {
+      this.wizardMap = L.map('wizard-leaflet-map').setView([lat, lng], 16);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(this.wizardMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(this.wizardMap);
 
-    const pinIcon = L.divIcon({
-      className: 'wizard-pin',
-      html: `
-        <div style="background-color: #2563eb; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.5); color: white; font-size: 16px;">
-          📍
-        </div>
-      `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
-    });
+      const pinIcon = L.divIcon({
+        className: 'wizard-pin',
+        html: `
+          <div style="background-color: #2563eb; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(37,99,235,0.5); color: white; font-size: 16px;">
+            📍
+          </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36]
+      });
 
-    this.wizardMarker = L.marker([lat, lng], {
-      draggable: true,
-      icon: pinIcon
-    }).addTo(this.wizardMap);
+      this.wizardMarker = L.marker([lat, lng], {
+        draggable: true,
+        icon: pinIcon
+      }).addTo(this.wizardMap);
 
-    // Update coordinates when marker is dragged
-    this.wizardMarker.on('dragend', async (e) => {
-      const position = e.target.getLatLng();
-      locationModule.currentLat = position.lat;
-      locationModule.currentLng = position.lng;
-      const addr = await locationModule.reverseGeocode(position.lat, position.lng);
-      locationModule.currentAddress = addr;
-      locationModule.updateDisplay();
-      app.showToast('Location adjusted to pin spot', 'info');
-    });
+      this.wizardMarker.on('dragend', async (e) => {
+        const position = e.target.getLatLng();
+        window.locationModule.currentLat = position.lat;
+        window.locationModule.currentLng = position.lng;
+        const addr = await window.locationModule.reverseGeocode(position.lat, position.lng);
+        window.locationModule.currentAddress = addr;
+        window.locationModule.updateDisplay();
+        if (window.app) window.app.showToast('Location adjusted to pin spot', 'info');
+      });
 
-    setTimeout(() => this.wizardMap.invalidateSize(), 300);
+      setTimeout(() => this.wizardMap && this.wizardMap.invalidateSize(), 300);
+    } catch (e) {
+      console.warn('Wizard map initialization deferred:', e);
+    }
   },
 
-  // Setup Detail Mini Map
   initDetailMiniMap(lat, lng) {
     const container = document.getElementById('detail-mini-map');
-    if (!container) return;
+    if (!container || typeof L === 'undefined') return;
 
     if (this.detailMiniMap) {
       this.detailMiniMap.remove();
       this.detailMiniMap = null;
     }
 
-    this.detailMiniMap = L.map('detail-mini-map', {
-      zoomControl: false,
-      attributionControl: false
-    }).setView([lat, lng], 15);
+    try {
+      this.detailMiniMap = L.map('detail-mini-map', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([lat, lng], 15);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(this.detailMiniMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(this.detailMiniMap);
 
-    const pinIcon = L.divIcon({
-      className: 'detail-pin',
-      html: `<div style="background-color: #ef4444; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3)">📍</div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 28]
-    });
+      const pinIcon = L.divIcon({
+        className: 'detail-pin',
+        html: `<div style="background-color: #ef4444; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.3)">📍</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 28]
+      });
 
-    L.marker([lat, lng], { icon: pinIcon }).addTo(this.detailMiniMap);
+      L.marker([lat, lng], { icon: pinIcon }).addTo(this.detailMiniMap);
 
-    setTimeout(() => this.detailMiniMap.invalidateSize(), 250);
+      setTimeout(() => this.detailMiniMap && this.detailMiniMap.invalidateSize(), 250);
+    } catch (e) {
+      console.warn('Mini-map init deferred:', e);
+    }
   }
 };
+
+// Expose explicitly to window
+window.mapModule = mapModule;

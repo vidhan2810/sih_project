@@ -1,5 +1,5 @@
 /**
- * CivicPulse - Live Location & GPS Subsystem
+ * BitAware - Live Location & GPS Subsystem
  * Integrates HTML5 Geolocation, reverse geocoding, and distance calculations.
  */
 
@@ -7,7 +7,7 @@ const locationModule = {
   currentLat: 28.6139,
   currentLng: 77.2090,
   currentAddress: 'Main Ring Road, Sector 14, Near Metro Pillar 84',
-  accuracy: 10, // meters
+  accuracy: 10,
 
   async detectLiveGPS(callback) {
     if (!navigator.geolocation) {
@@ -17,7 +17,7 @@ const locationModule = {
       return;
     }
 
-    app.showToast('Acquiring precise GPS coordinates...', 'info');
+    if (window.app) window.app.showToast('Acquiring precise GPS coordinates...', 'info');
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -25,18 +25,17 @@ const locationModule = {
         this.currentLng = pos.coords.longitude;
         this.accuracy = pos.coords.accuracy || 10;
 
-        // Perform reverse geocoding to human-readable address
         const addr = await this.reverseGeocode(this.currentLat, this.currentLng);
         this.currentAddress = addr;
 
         this.updateDisplay();
-        app.showToast('GPS Locked with high accuracy (±' + Math.round(this.accuracy) + 'm)', 'success');
+        if (window.app) window.app.showToast('GPS Locked with high accuracy (±' + Math.round(this.accuracy) + 'm)', 'success');
 
         if (callback) callback(this.currentLat, this.currentLng, this.currentAddress);
       },
       (err) => {
         console.warn('GPS position error or permission denied:', err.message);
-        app.showToast('Using local municipal zone coordinates.', 'info');
+        if (window.app) window.app.showToast('Using local municipal zone coordinates.', 'info');
         this.updateDisplay();
         if (callback) callback(this.currentLat, this.currentLng, this.currentAddress);
       },
@@ -78,9 +77,8 @@ const locationModule = {
     if (addrElem) addrElem.value = this.currentAddress;
   },
 
-  // Calculate distance between two coordinates in kilometers using Haversine formula
   getDistanceKm(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth radius in km
+    const R = 6371;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
@@ -91,3 +89,6 @@ const locationModule = {
     return (R * c).toFixed(1);
   }
 };
+
+// Expose explicitly to window
+window.locationModule = locationModule;

@@ -1,5 +1,5 @@
 /**
- * CivicPulse - Analytics & Data Visualizations Subsystem
+ * BitAware - Analytics & Data Visualizations Subsystem
  * Uses Chart.js to render department metrics, categories breakdown, and resolution velocity.
  */
 
@@ -22,9 +22,9 @@ const analyticsModule = {
     const canvas = document.getElementById('chart-categories');
     if (!canvas || typeof Chart === 'undefined') return;
 
-    const complaints = dataStore.getAllComplaints();
+    const complaints = window.dataStore.getAllComplaints();
     const counts = {};
-    CIVIC_CATEGORIES.forEach(c => counts[c.name] = 0);
+    window.CIVIC_CATEGORIES.forEach(c => counts[c.name] = 0);
 
     complaints.forEach(item => {
       counts[item.categoryName] = (counts[item.categoryName] || 0) + 1;
@@ -64,9 +64,9 @@ const analyticsModule = {
 
   renderStatusChart() {
     const canvas = document.getElementById('chart-statuses');
-    if (!canvas) return;
+    if (!canvas || typeof Chart === 'undefined') return;
 
-    const complaints = dataStore.getAllComplaints();
+    const complaints = window.dataStore.getAllComplaints();
     const statusCounts = {
       'Submitted': 0,
       'Under Review': 0,
@@ -109,7 +109,7 @@ const analyticsModule = {
 
   renderVelocityChart() {
     const canvas = document.getElementById('chart-velocity');
-    if (!canvas) return;
+    if (!canvas || typeof Chart === 'undefined') return;
 
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const resolvedData = [4, 6, 8, 5, 9, 12, 14];
@@ -159,4 +159,6 @@ const analyticsModule = {
     });
   }
 };
+
+// Expose explicitly to window
 window.analyticsModule = analyticsModule;
