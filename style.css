@@ -1,4 +1,4 @@
-/* CivicPulse Custom Modern Styling */
+/* BitAware Custom Modern Styling */
 
 @keyframes pulseGlow {
   0%, 100% {
@@ -6,8 +6,8 @@
     transform: scale(1);
   }
   50% {
-    opacity: 0.7;
-    transform: scale(1.08);
+    opacity: 0.8;
+    transform: scale(1.04);
   }
 }
 
@@ -25,9 +25,11 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -65,6 +67,29 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Gateway Portal Cards Animation & Depth */
+.portal-card-citizen {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 60%), #ffffff;
+}
+
+.portal-card-citizen:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -10px rgba(37, 99, 235, 0.2);
+  border-color: #3b82f6;
+}
+
+.portal-card-municipality {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 60%), #ffffff;
+}
+
+.portal-card-municipality:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 35px -10px rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
 }
 
 /* Leaflet Map Custom Marker & Popup Styling */

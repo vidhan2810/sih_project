@@ -68,15 +68,15 @@
         
         <!-- Logo & Branding -->
         <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigateTo('landing')">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <i data-lucide="activity" class="w-6 h-6"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-extrabold text-xl tracking-tight text-slate-900">Civic<span class="text-blue-600">Pulse</span></span>
+              <span class="font-extrabold text-xl tracking-tight text-slate-900">Bit<span class="text-blue-600">Aware</span></span>
               <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">GovTech</span>
             </div>
-            <p class="text-xs text-slate-500 hidden sm:block">Public Issue Reporting & Resolution Portal</p>
+            <p class="text-xs text-slate-500 hidden sm:block">Civic Issue Reporting & Resolution Ecosystem</p>
           </div>
         </div>
 
@@ -89,7 +89,7 @@
             Citizen Portal
           </button>
           <button onclick="app.navigateTo('authority-dashboard')" id="nav-authority-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            Authority Portal
+            Municipality Portal
           </button>
           <button onclick="app.navigateTo('map-view')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
             Live Civic Map
@@ -109,19 +109,19 @@
               <span id="current-role-label">Role: Citizen</span>
               <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-500"></i>
             </button>
-            <div id="role-menu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 text-xs font-medium">
+            <div id="role-menu" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 text-xs font-medium">
               <div class="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400">Switch Active Persona</div>
               <button onclick="app.switchRole('citizen')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
                 <i data-lucide="user" class="w-4 h-4 text-blue-500"></i> Citizen (Rahul Sharma)
               </button>
               <button onclick="app.switchRole('authority-pwd')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="hard-hat" class="w-4 h-4 text-amber-500"></i> Authority (PWD & Roads)
+                <i data-lucide="hard-hat" class="w-4 h-4 text-amber-500"></i> Municipality (PWD & Roads)
               </button>
               <button onclick="app.switchRole('authority-waste')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="trash-2" class="w-4 h-4 text-emerald-500"></i> Authority (Solid Waste Mgmt)
+                <i data-lucide="trash-2" class="w-4 h-4 text-emerald-500"></i> Municipality (Solid Waste)
               </button>
               <button onclick="app.switchRole('authority-water')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
-                <i data-lucide="droplet" class="w-4 h-4 text-cyan-500"></i> Authority (Water & Sewerage)
+                <i data-lucide="droplet" class="w-4 h-4 text-cyan-500"></i> Municipality (Water Board)
               </button>
               <button onclick="app.switchRole('admin')" class="w-full text-left px-3 py-2 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-4 h-4 text-purple-500"></i> Platform Administrator
@@ -162,87 +162,227 @@
   <!-- ================= MAIN CONTENT AREA ================= -->
   <main id="app-root" class="flex-1 overflow-x-hidden">
     
-    <!-- 1. LANDING PAGE VIEW -->
+    <!-- 1. LANDING PAGE VIEW (WHAT ARE YOU: COMPLAINER OR MUNICIPALITY) -->
     <section id="view-landing" class="view-section">
-      <!-- Hero Section -->
-      <div class="relative bg-gradient-to-b from-blue-900 via-indigo-950 to-slate-900 text-white py-16 sm:py-24 overflow-hidden">
+      
+      <!-- Hero Gateway Header -->
+      <div class="relative bg-gradient-to-b from-slate-900 via-indigo-950 to-blue-950 text-white py-14 sm:py-20 overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-6">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Next-Gen Civic Tech Platform
+          
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Welcome to BitAware Civic Platform
           </span>
-          <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
-            See a Civic Problem? <br/><span class="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">Snap, Report & Resolve in Minutes.</span>
+
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+            What are you? <br/>
+            <span class="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">
+              A Complainer or the Municipality?
+            </span>
           </h1>
-          <p class="mt-6 text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto">
-            Directly bridge the gap between citizens and municipal authorities with live camera verification, precise GPS tracking, and complete transparent resolution lifecycle.
+
+          <p class="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Select your dedicated gateway to report neighborhood issues with live camera proof, or investigate and resolve civic grievances as an authorized department.
           </p>
 
-          <!-- Main CTA Action Box -->
-          <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-            <button onclick="app.startReportIssue()" class="w-full sm:w-auto flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-blue-500/30 text-base transition transform hover:-translate-y-0.5">
-              <i data-lucide="camera" class="w-5 h-5"></i>
-              <span>Report a Civic Issue Now</span>
-            </button>
-            <button onclick="app.navigateTo('map-view')" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-4 rounded-2xl text-base backdrop-blur transition">
-              <i data-lucide="map" class="w-5 h-5 text-cyan-400"></i>
-              <span>Explore Live Map</span>
-            </button>
+          <!-- ================= 2 PRIMARY PORTAL GATEWAYS ================= -->
+          <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto text-left">
+            
+            <!-- PORTAL A: COMPLAINER / CITIZEN CARD -->
+            <div class="portal-card-citizen bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-blue-200 shadow-xl relative overflow-hidden flex flex-col justify-between group">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
+              
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <i data-lucide="user-check" class="w-7 h-7"></i>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-extrabold uppercase tracking-wide">
+                    Portal A • Complainer
+                  </span>
+                </div>
+
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  I am a Citizen / Complainer
+                </h2>
+                <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+                  Notice a pothole, open garbage dump, leaking water pipe, or broken streetlight? Snap a live verified photo with automatic GPS detection and submit in under 60 seconds.
+                </p>
+
+                <!-- Key Capabilities -->
+                <ul class="mt-5 space-y-2.5 text-xs text-slate-700 font-medium">
+                  <li class="flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i>
+                    <span><strong>Live Camera Capture</strong> with tamper-proof GPS watermark</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i>
+                    <span><strong>Real-Time Tracking</strong> from dispatch to completion timeline</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i>
+                    <span><strong>Before vs After Photo Proof</strong> verification</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Complainer Action Hub -->
+              <div class="mt-8 space-y-3 pt-6 border-t border-slate-100">
+                <button onclick="app.startReportIssue()" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/30 text-sm transition transform hover:-translate-y-0.5 active:scale-95">
+                  <i data-lucide="camera" class="w-5 h-5"></i>
+                  <span>Snap & Report a Civic Issue Now</span>
+                </button>
+
+                <div class="flex gap-2">
+                  <button onclick="app.switchRole('citizen')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-600"></i>
+                    <span>Citizen Dashboard</span>
+                  </button>
+                  <button onclick="app.navigateTo('map-view')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="map" class="w-4 h-4 text-slate-600"></i>
+                    <span>Browse Map</span>
+                  </button>
+                </div>
+
+                <!-- Quick Ticket Tracking Bar -->
+                <div class="mt-4 pt-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                  <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Already filed a complaint? Track by ID</label>
+                  <div class="flex gap-2">
+                    <input type="text" id="home-track-input" placeholder="e.g. CIV-2026-000101" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="app.trackTicketById('home-track-input')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
+                      Track
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PORTAL B: MUNICIPALITY / RESOLUTION AUTHORITY CARD -->
+            <div class="portal-card-municipality bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-emerald-200 shadow-xl relative overflow-hidden flex flex-col justify-between group">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+              
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <i data-lucide="landmark" class="w-7 h-7"></i>
+                  </div>
+                  <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold uppercase tracking-wide">
+                    Portal B • Municipality & Org
+                  </span>
+                </div>
+
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
+                  I am the Municipality / Authority
+                </h2>
+                <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+                  For Municipal Corporations, PWD, Solid Waste Dept, Jal Board, Traffic Units, NGOs, and RWAs to triage citizen issues, dispatch field workers, and upload resolution proof.
+                </p>
+
+                <!-- Key Capabilities -->
+                <ul class="mt-5 space-y-2.5 text-xs text-slate-700 font-medium">
+                  <li class="flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                    <span><strong>GIS Operational Command</strong> & radius-based triage</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                    <span><strong>Field Team Dispatch</strong> & SLA turnaround governance</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                    <span><strong>Upload 'After' Evidence Photos</strong> to close grievances</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Municipality Action Hub -->
+              <div class="mt-8 space-y-3 pt-6 border-t border-slate-100">
+                <button onclick="app.switchRole('authority-pwd')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-600/30 text-sm transition transform hover:-translate-y-0.5 active:scale-95">
+                  <i data-lucide="shield" class="w-5 h-5"></i>
+                  <span>Enter Municipality Command Center</span>
+                </button>
+
+                <div class="flex gap-2">
+                  <button onclick="app.navigateTo('map-view')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-slate-600"></i>
+                    <span>Geographic Issues Map</span>
+                  </button>
+                  <button onclick="app.openAddOrgModal()" class="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Register Department / NGO</span>
+                  </button>
+                </div>
+
+                <!-- Fast Department Quick-Switch -->
+                <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                  <span class="font-semibold text-slate-600">Quick Access:</span>
+                  <div class="flex gap-2">
+                    <button onclick="app.switchRole('authority-pwd')" class="text-blue-600 hover:underline font-bold">PWD Roads</button>
+                    <span>•</span>
+                    <button onclick="app.switchRole('authority-waste')" class="text-emerald-600 hover:underline font-bold">Waste Mgmt</button>
+                    <span>•</span>
+                    <button onclick="app.switchRole('authority-water')" class="text-cyan-600 hover:underline font-bold">Water Board</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Quick Stat Badges -->
-          <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-8 border-t border-white/10 text-left">
+          <!-- Quick Stat Counters -->
+          <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto pt-8 border-t border-white/10 text-left">
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
               <div class="text-2xl sm:text-3xl font-extrabold text-blue-400" id="hero-stat-total">1,482</div>
-              <div class="text-xs text-slate-300 mt-1">Issues Reported</div>
+              <div class="text-xs text-slate-300 mt-1">Grievances Reported</div>
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
               <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400" id="hero-stat-resolved">1,210</div>
-              <div class="text-xs text-slate-300 mt-1">Resolved Successfully</div>
+              <div class="text-xs text-slate-300 mt-1">Resolved with Proof</div>
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
               <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400">18.4 hrs</div>
-              <div class="text-xs text-slate-300 mt-1">Avg Resolution Time</div>
+              <div class="text-xs text-slate-300 mt-1">Average SLA Turnaround</div>
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
               <div class="text-2xl sm:text-3xl font-extrabold text-amber-400">92.4%</div>
-              <div class="text-xs text-slate-300 mt-1">Citizen Satisfaction</div>
+              <div class="text-xs text-slate-300 mt-1">Citizen Trust Rating</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Core Features Grid -->
+      <!-- How BitAware Works 4-Step Process -->
       <div class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12">
-          <h2 class="text-xs uppercase font-bold text-blue-600 tracking-wider">How It Works</h2>
-          <p class="mt-2 text-3xl font-bold text-slate-900">4 Simple Steps to a Better City</p>
+          <h2 class="text-xs uppercase font-bold text-blue-600 tracking-wider">The BitAware Workflow</h2>
+          <p class="mt-2 text-3xl font-bold text-slate-900">How Complaints Reach Resolution</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg mb-4">
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg mb-4">
               <i data-lucide="camera" class="w-6 h-6"></i>
             </div>
             <h3 class="font-bold text-lg text-slate-900">1. Snap Live Photo</h3>
-            <p class="text-sm text-slate-600 mt-2">Open the camera in one click. Capture clear photographic evidence directly on-site.</p>
+            <p class="text-sm text-slate-600 mt-2">Open the device camera in one click. Capture real-time photographic proof on location.</p>
           </div>
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-600 flex items-center justify-center font-bold text-lg mb-4">
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center font-bold text-lg mb-4">
               <i data-lucide="map-pin" class="w-6 h-6"></i>
             </div>
             <h3 class="font-bold text-lg text-slate-900">2. Auto-Detect GPS</h3>
             <p class="text-sm text-slate-600 mt-2">Accurate coordinates and human-readable address are pinned immediately on the interactive map.</p>
           </div>
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg mb-4">
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg mb-4">
               <i data-lucide="send" class="w-6 h-6"></i>
             </div>
             <h3 class="font-bold text-lg text-slate-900">3. Auto-Routing</h3>
             <p class="text-sm text-slate-600 mt-2">Complaint gets routed automatically to the designated Municipal Corporation, PWD, or NGO team.</p>
           </div>
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg mb-4">
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg mb-4">
               <i data-lucide="check-circle-2" class="w-6 h-6"></i>
             </div>
             <h3 class="font-bold text-lg text-slate-900">4. Verified Resolution</h3>
@@ -346,7 +486,7 @@
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-6">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Quick Civic Complaint Form</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-blue-600">BitAware Complaint Dispatcher</span>
             <h2 class="text-xl font-extrabold text-slate-900">Report a Civic Problem</h2>
           </div>
           <button onclick="app.cancelReportWizard()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
@@ -625,7 +765,7 @@
         <span class="text-xs uppercase font-bold text-emerald-600 tracking-wider">Complaint Successfully Registered</span>
         <h2 class="text-2xl font-extrabold text-slate-900 mt-1">Thank You, Rahul!</h2>
         <p class="text-xs text-slate-500 max-w-md mx-auto mt-2">
-          Your complaint has been logged into the civic ledger and assigned to the municipal dispatch team.
+          Your complaint has been logged into the BitAware civic ledger and assigned to the municipal dispatch team.
         </p>
 
         <div class="my-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300 max-w-sm mx-auto">
@@ -720,7 +860,7 @@
               <div class="space-y-2">
                 <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
                   <span class="flex items-center gap-1.5 text-emerald-600">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Authority Proof (After)
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Municipality Proof (After)
                   </span>
                   <span id="detail-evidence-badge" class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Pending Work</span>
                 </div>
@@ -753,7 +893,7 @@
           <div id="detail-authority-actions" class="bg-gradient-to-b from-blue-900 to-indigo-950 text-white rounded-3xl shadow-lg p-6">
             <div class="flex items-center gap-2 mb-4">
               <i data-lucide="shield" class="w-5 h-5 text-blue-400"></i>
-              <h3 class="font-bold text-sm">Authority Resolution Actions</h3>
+              <h3 class="font-bold text-sm">Municipality Resolution Actions</h3>
             </div>
             
             <p class="text-xs text-blue-200 mb-4">Update status, dispatch field teams, or upload completion evidence.</p>
@@ -923,7 +1063,7 @@
     <section id="view-map-view" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div>
-          <h1 class="text-2xl font-extrabold text-slate-900">Live Civic Issues Map</h1>
+          <h1 class="text-2xl font-extrabold text-slate-900">Live BitAware Civic Map</h1>
           <p class="text-xs text-slate-500">Real-time geographical view of all reported citizen problems and resolution status</p>
         </div>
 
@@ -959,14 +1099,14 @@
           <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-400 text-purple-300 text-xs font-bold">Platform Governance</span>
           <span class="text-xs text-slate-300">System Administrator</span>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold mt-1">Civic Tech Platform Command Center</h1>
+        <h1 class="text-2xl sm:text-3xl font-extrabold mt-1">BitAware Governance Command Center</h1>
         <p class="text-xs text-purple-200 mt-1">Supervise municipal departments, verify authorized NGOs, manage categories and platform health.</p>
       </div>
 
       <!-- Admin Tabs -->
       <div class="flex gap-2 mb-6 border-b border-slate-200 pb-2">
         <button onclick="app.setAdminTab('orgs')" id="admin-tab-orgs" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white">
-          Resolution Organizations (6)
+          Resolution Organizations (4)
         </button>
         <button onclick="app.setAdminTab('categories')" id="admin-tab-categories" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
           Civic Categories & SLAs
@@ -1008,6 +1148,64 @@
     </section>
 
   </main>
+
+  <!-- ================= REGISTER NEW ORG MODAL ================= -->
+  <div id="register-org-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 animate-slideDown">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+            <i data-lucide="building-2" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900">Register Resolution Body / NGO</h3>
+        </div>
+        <button onclick="app.closeAddOrgModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-4">Join BitAware to manage civic resolution, deploy field crews, and upload work evidence.</p>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Organization / Dept Name *</label>
+          <input type="text" id="new-org-name" placeholder="e.g. West Zone Solid Waste Division" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Organization Type *</label>
+          <select id="new-org-type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="Municipal Department">Municipal Department</option>
+            <option value="Government Agency">Government Agency</option>
+            <option value="Verified NGO Partner">Verified NGO Partner</option>
+            <option value="RWA / Resident Association">RWA / Resident Association</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Operational Area / Zone</label>
+          <input type="text" id="new-org-zone" placeholder="e.g. Central Zone (Wards 10 - 25)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Lead Officer / Contact</label>
+            <input type="text" id="new-org-lead" placeholder="Officer Name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Official Phone</label>
+            <input type="text" id="new-org-phone" placeholder="+91 11 ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex gap-2">
+        <button onclick="app.closeAddOrgModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs">
+          Cancel
+        </button>
+        <button onclick="app.submitNewOrg()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">
+          Submit & Verify
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= MOBILE BOTTOM NAVIGATION BAR ================= -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 py-2 px-4 z-40 flex items-center justify-around shadow-lg">
