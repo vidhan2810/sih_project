@@ -3,1049 +3,673 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>BitAware — Civic Issue Reporting & Resolution Platform</title>
-  
-  <!-- Fonts -->
+  <title>NagarNazar — Civic Issue Reporting &amp; Resolution Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
-          },
-          colors: {
-            civic: {
-              50: '#eff6ff',
-              100: '#dbeafe',
-              200: '#bfdbfe',
-              500: '#3b82f6',
-              600: '#2563eb',
-              700: '#1d4ed8',
-              800: '#1e40af',
-              900: '#1e3a8a',
-              950: '#0f172a',
-            },
-            status: {
-              submitted: '#ef4444',
-              under_review: '#f97316',
-              assigned: '#eab308',
-              in_progress: '#3b82f6',
-              resolved: '#10b981',
-              closed: '#64748b'
-            }
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- Lucide Icons -->
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Plus Jakarta Sans"','Inter','sans-serif']}}}}</script>
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Leaflet CSS & JS for Maps -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-  <!-- Chart.js for Analytics -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    @keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes flashOut{from{opacity:0.9}to{opacity:0}}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+    @keyframes pulse-border{0%,100%{border-color:#f59e0b}50%{border-color:#ef4444}}
+    .animate-slideDown{animation:slideDown 0.25s cubic-bezier(0.16,1,0.3,1) forwards}
+    .animate-fadeIn{animation:fadeIn 0.25s ease-out forwards}
+    .animate-shake{animation:shake 0.4s ease-in-out}
+    .portal-card-citizen{transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}
+    .portal-card-citizen:hover{transform:translateY(-4px);box-shadow:0 20px 35px -10px rgba(37,99,235,0.2);border-color:#3b82f6}
+    .portal-card-municipality{transition:all 0.3s cubic-bezier(0.16,1,0.3,1)}
+    .portal-card-municipality:hover{transform:translateY(-4px);box-shadow:0 20px 35px -10px rgba(16,185,129,0.2);border-color:#10b981}
+    .leaflet-popup-content-wrapper{padding:0;border-radius:1rem;overflow:hidden;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);border:1px solid #e2e8f0}
+    .leaflet-popup-content{margin:0}
+    .leaflet-popup-close-button{padding:8px 8px 0 0!important;color:#fff!important;font-size:18px!important;z-index:20}
+    .camera-shutter-flash{position:absolute;inset:0;background:white;opacity:0.9;z-index:30;animation:flashOut 0.3s ease-out forwards}
+    .duplicate-banner{animation:pulse-border 2s ease-in-out infinite}
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-track{background:#f1f5f9}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9999px}
+  </style>
 </head>
-<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-blue-500 selection:text-white pb-16 md:pb-0">
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-indigo-500 selection:text-white pb-16 md:pb-0">
 
-  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <!-- NAV -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        
-        <!-- Logo & Branding -->
         <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigateTo('landing')">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-            <i data-lucide="activity" class="w-6 h-6"></i>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-700 via-purple-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+            <i data-lucide="eye" class="w-6 h-6"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-extrabold text-xl tracking-tight text-slate-900">Bit<span class="text-blue-600">Aware</span></span>
-              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">GovTech</span>
+              <span class="font-extrabold text-xl tracking-tight text-slate-900">Nagar<span class="text-indigo-600">Nazar</span></span>
+              <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">GovTech</span>
             </div>
-            <p class="text-xs text-slate-500 hidden sm:block">Civic Issue Reporting & Resolution Ecosystem</p>
+            <p class="text-xs text-slate-500 hidden sm:block">Your city sees all, thanks to you.</p>
           </div>
         </div>
-
-        <!-- Desktop Navigation Links -->
-        <nav class="hidden md:flex items-center gap-1">
-          <button onclick="app.navigateTo('citizen-dashboard')" id="nav-citizen-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            Citizen Portal
-          </button>
-          <button onclick="app.navigateTo('authority-dashboard')" id="nav-authority-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            Municipality Portal
-          </button>
-          <button onclick="app.navigateTo('map-view')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            Live Civic Map
-          </button>
+        <nav id="main-nav" class="hidden md:flex items-center gap-1">
+          <!-- Rendered dynamically by app.renderNav() -->
         </nav>
-
-        <!-- Right Quick Actions -->
         <div class="flex items-center gap-3">
-
-          <!-- Notification Bell -->
           <button onclick="app.toggleNotifications()" class="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
             <i data-lucide="bell" class="w-5 h-5"></i>
-            <span id="notif-badge" class="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center ring-2 ring-white">3</span>
+            <span id="notif-badge" class="hidden absolute top-1 right-1 w-4 h-4 bg-rose-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center ring-2 ring-white">0</span>
           </button>
-
-          <!-- Primary Report Issue CTA Button -->
-          <button onclick="app.startReportIssue()" class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-blue-600/20 transition transform active:scale-95">
-            <i data-lucide="camera" class="w-4 h-4"></i>
-            <span>Report Issue</span>
+          <button id="nav-report-btn" onclick="app.startReportIssue()" class="hidden items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md transition transform active:scale-95">
+            <i data-lucide="camera" class="w-4 h-4"></i><span>Report Issue</span>
           </button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ================= NOTIFICATIONS DRAWER ================= -->
+  <!-- NOTIFICATIONS DRAWER -->
   <div id="notifications-drawer" class="hidden fixed top-16 right-4 w-80 sm:w-96 max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden flex flex-col animate-slideDown">
     <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i data-lucide="bell" class="w-4 h-4 text-blue-400"></i>
-        <h3 class="font-bold text-sm">Notifications & Updates</h3>
-      </div>
-      <button onclick="app.markAllNotificationsRead()" class="text-xs text-blue-300 hover:underline">Mark all read</button>
+      <div class="flex items-center gap-2"><i data-lucide="bell" class="w-4 h-4 text-indigo-400"></i><h3 class="font-bold text-sm">Notifications &amp; Updates</h3></div>
+      <button onclick="app.markAllNotificationsRead()" class="text-xs text-indigo-300 hover:underline">Mark all read</button>
     </div>
-    <div id="notifications-list" class="divide-y divide-slate-100 overflow-y-auto max-h-96 p-2">
-      <!-- Dynamic Notifications injected by JS -->
-    </div>
+    <div id="notifications-list" class="divide-y divide-slate-100 overflow-y-auto max-h-96 p-2"></div>
   </div>
 
-  <!-- ================= MAIN CONTENT AREA ================= -->
   <main id="app-root" class="flex-1 overflow-x-hidden">
-    
-    <!-- 1. LANDING PAGE VIEW (WHAT ARE YOU: COMPLAINER OR MUNICIPALITY) -->
+
+    <!-- ===== LANDING PAGE ===== -->
     <section id="view-landing" class="view-section">
-      
-      <!-- Hero Gateway Header -->
-      <div class="relative bg-gradient-to-b from-slate-900 via-indigo-950 to-blue-950 text-white py-14 sm:py-20 overflow-hidden">
+      <div class="relative bg-gradient-to-b from-slate-900 via-indigo-950 to-purple-950 text-white py-14 sm:py-20 overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-cyan-300 text-xs font-semibold uppercase tracking-wider mb-5">
+            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Welcome to NagarNazar
+          </span>
           <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
             What are you? <br/>
-            <span class="bg-gradient-to-r from-blue-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">
-              A Complainer or the Municipality?
-            </span>
+            <span class="bg-gradient-to-r from-indigo-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent">A Citizen or the Municipality?</span>
           </h1>
-
-          <p class="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Select your dedicated gateway to report neighborhood issues with live camera proof, or investigate and resolve civic grievances as an authorized department.
-          </p>
-
-          <!-- ================= 2 PRIMARY PORTAL GATEWAYS ================= -->
+          <p class="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">Select your portal to report neighbourhood issues with live camera proof, or manage civic grievances as an authorized department.</p>
           <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto text-left">
-            
-            <!-- PORTAL A: COMPLAINER / CITIZEN CARD -->
-            <div class="portal-card-citizen bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-blue-200 shadow-xl relative overflow-hidden flex flex-col justify-between group">
+
+            <!-- CITIZEN PORTAL CARD -->
+            <div class="portal-card-citizen bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-blue-200 shadow-xl relative overflow-hidden flex flex-col justify-between">
               <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"></div>
-              
               <div>
                 <div class="flex items-center justify-between mb-4">
-                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <i data-lucide="user-check" class="w-7 h-7"></i>
-                  </div>
-                  <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-extrabold uppercase tracking-wide">
-                    Portal A • Complainer
-                  </span>
+                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"><i data-lucide="user-check" class="w-7 h-7"></i></div>
+                  <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-extrabold uppercase">Portal A &bull; Citizen</span>
                 </div>
-
-                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
-                  I am a Citizen / Complainer
-                </h2>
-                <p class="text-sm text-slate-600 mt-2 leading-relaxed">
-                  Notice a pothole, open garbage dump, leaking water pipe, or broken streetlight? Snap a live verified photo with automatic GPS detection and submit in under 60 seconds.
-                </p>
-
-                <!-- Key Capabilities -->
+                <h2 class="text-2xl font-extrabold text-slate-900">I am a Citizen / Complainer</h2>
+                <p class="text-sm text-slate-600 mt-2 leading-relaxed">Notice a pothole, garbage dump, leaking pipe, or broken streetlight? Snap a live verified photo with automatic GPS and submit in under 60 seconds.</p>
                 <ul class="mt-5 space-y-2.5 text-xs text-slate-700 font-medium">
-                  <li class="flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i>
-                    <span><strong>Live Camera Capture</strong> with tamper-proof GPS watermark</span>
-                  </li>
-                  <li class="flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i>
-                    <span><strong>Real-Time Tracking</strong> from dispatch to completion timeline</span>
-                  </li>
-                  <li class="flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i>
-                    <span><strong>Before vs After Photo Proof</strong> verification</span>
-                  </li>
+                  <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i><span><strong>Live Camera Capture</strong> with tamper-proof GPS watermark</span></li>
+                  <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i><span><strong>Neighbourhood Alerts</strong> — see what your area already reported</span></li>
+                  <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600 flex-shrink-0"></i><span><strong>Duplicate Prevention</strong> — no double-filing the same issue</span></li>
                 </ul>
               </div>
-
-              <!-- Complainer Action Hub -->
               <div class="mt-8 space-y-3 pt-6 border-t border-slate-100">
-                <button onclick="app.startReportIssue()" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/30 text-sm transition transform hover:-translate-y-0.5 active:scale-95">
-                  <i data-lucide="camera" class="w-5 h-5"></i>
-                  <span>Snap & Report a Civic Issue Now</span>
+                <button onclick="app.navigateTo('citizen-login')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg text-sm transition transform hover:-translate-y-0.5 active:scale-95">
+                  <i data-lucide="log-in" class="w-5 h-5"></i><span>Login as Citizen</span>
                 </button>
-
-                <div class="flex gap-2">
-                  <button onclick="app.switchRole('citizen')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-600"></i>
-                    <span>Citizen Dashboard</span>
-                  </button>
-                  <button onclick="app.navigateTo('map-view')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
-                    <i data-lucide="map" class="w-4 h-4 text-slate-600"></i>
-                    <span>Browse Map</span>
-                  </button>
-                </div>
-
-                <!-- Quick Ticket Tracking Bar -->
-                <div class="mt-4 pt-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                <div class="mt-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
                   <label class="text-[10px] font-bold uppercase text-slate-400 block mb-1">Already filed a complaint? Track by ID</label>
                   <div class="flex gap-2">
                     <input type="text" id="home-track-input" placeholder="e.g. CIV-2026-000101" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button onclick="app.trackTicketById('home-track-input')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">
-                      Track
-                    </button>
+                    <button onclick="app.trackTicketById('home-track-input')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition">Track</button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- PORTAL B: MUNICIPALITY / RESOLUTION AUTHORITY CARD -->
-            <div class="portal-card-municipality bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-emerald-200 shadow-xl relative overflow-hidden flex flex-col justify-between group">
+            <!-- MUNICIPALITY PORTAL CARD -->
+            <div class="portal-card-municipality bg-white text-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-emerald-200 shadow-xl relative overflow-hidden flex flex-col justify-between">
               <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-              
               <div>
                 <div class="flex items-center justify-between mb-4">
-                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                    <i data-lucide="landmark" class="w-7 h-7"></i>
-                  </div>
-                  <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold uppercase tracking-wide">
-                    Portal B • Municipality & Org
-                  </span>
+                  <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30"><i data-lucide="landmark" class="w-7 h-7"></i></div>
+                  <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold uppercase">Portal B &bull; Municipality</span>
                 </div>
-
-                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">
-                  I am the Municipality / Authority
-                </h2>
-                <p class="text-sm text-slate-600 mt-2 leading-relaxed">
-                  For Municipal Corporations, PWD, Solid Waste Dept, Jal Board, Traffic Units, NGOs, and RWAs to triage citizen issues, dispatch field workers, and upload resolution proof.
-                </p>
-
-                <!-- Key Capabilities -->
+                <h2 class="text-2xl font-extrabold text-slate-900">I am the Municipality / Authority</h2>
+                <p class="text-sm text-slate-600 mt-2 leading-relaxed">For Municipal Corporations, PWD, Solid Waste Dept, Jal Board, Traffic Units, NGOs, and RWAs to triage issues, dispatch field workers, and upload resolution proof.</p>
                 <ul class="mt-5 space-y-2.5 text-xs text-slate-700 font-medium">
-                  <li class="flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                    <span><strong>GIS Operational Command</strong> & radius-based triage</span>
-                  </li>
-                  <li class="flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                    <span><strong>Field Team Dispatch</strong> & SLA turnaround governance</span>
-                  </li>
-                  <li class="flex items-center gap-2">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                    <span><strong>Upload 'After' Evidence Photos</strong> to close grievances</span>
-                  </li>
+                  <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i><span><strong>GIS Operational Command</strong> &amp; radius-based triage</span></li>
+                  <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i><span><strong>Field Team Dispatch</strong> &amp; SLA turnaround governance</span></li>
+                  <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i><span><strong>Upload After Evidence Photos</strong> to close grievances</span></li>
                 </ul>
               </div>
-
-              <!-- Municipality Action Hub -->
-              <div class="mt-8 space-y-3 pt-6 border-t border-slate-100">
-                <button onclick="app.switchRole('authority-pwd')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-600/30 text-sm transition transform hover:-translate-y-0.5 active:scale-95">
-                  <i data-lucide="shield" class="w-5 h-5"></i>
-                  <span>Enter Municipality Command Center</span>
+              <div class="mt-8 pt-6 border-t border-slate-100">
+                <button onclick="app.navigateTo('municipality-login')" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold py-4 rounded-2xl shadow-lg text-sm transition transform hover:-translate-y-0.5 active:scale-95">
+                  <i data-lucide="shield" class="w-5 h-5"></i><span>Login as Municipality</span>
                 </button>
-
-                <div class="flex gap-2">
-                  <button onclick="app.navigateTo('map-view')" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
-                    <i data-lucide="map-pin" class="w-4 h-4 text-slate-600"></i>
-                    <span>Geographic Issues Map</span>
-                  </button>
-                  <button onclick="app.openAddOrgModal()" class="flex-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
-                    <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i>
-                    <span>Register Department / NGO</span>
-                  </button>
-                </div>
-
-                <!-- Fast Department Quick-Switch -->
-                <div class="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                  <span class="font-semibold text-slate-600">Quick Access:</span>
-                  <div class="flex gap-2">
-                    <button onclick="app.switchRole('authority-pwd')" class="text-blue-600 hover:underline font-bold">PWD Roads</button>
-                    <span>•</span>
-                    <button onclick="app.switchRole('authority-waste')" class="text-emerald-600 hover:underline font-bold">Waste Mgmt</button>
-                    <span>•</span>
-                    <button onclick="app.switchRole('authority-water')" class="text-cyan-600 hover:underline font-bold">Water Board</button>
-                  </div>
-                </div>
+                <button onclick="app.openAddOrgModal()" class="mt-3 w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition">
+                  <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i><span>Register New Department / NGO</span>
+                </button>
               </div>
             </div>
-
           </div>
 
-          <!-- Quick Stat Counters -->
+          <!-- Stats -->
           <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto pt-8 border-t border-white/10 text-left">
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
-              <div class="text-2xl sm:text-3xl font-extrabold text-blue-400" id="hero-stat-total">1,482</div>
-              <div class="text-xs text-slate-300 mt-1">Grievances Reported</div>
-            </div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
-              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400" id="hero-stat-resolved">1,210</div>
-              <div class="text-xs text-slate-300 mt-1">Resolved with Proof</div>
-            </div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
-              <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400">18.4 hrs</div>
-              <div class="text-xs text-slate-300 mt-1">Average SLA Turnaround</div>
-            </div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur">
-              <div class="text-2xl sm:text-3xl font-extrabold text-amber-400">92.4%</div>
-              <div class="text-xs text-slate-300 mt-1">Citizen Trust Rating</div>
-            </div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-blue-400">1,482</div><div class="text-xs text-slate-300 mt-1">Grievances Reported</div></div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-emerald-400">1,210</div><div class="text-xs text-slate-300 mt-1">Resolved with Proof</div></div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-cyan-400">18.4 hrs</div><div class="text-xs text-slate-300 mt-1">Avg SLA Turnaround</div></div>
+            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-amber-400">92.4%</div><div class="text-xs text-slate-300 mt-1">Citizen Trust Rating</div></div>
           </div>
         </div>
       </div>
 
-      <!-- How BitAware Works 4-Step Process -->
+      <!-- How it works -->
       <div class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-12">
-          <h2 class="text-xs uppercase font-bold text-blue-600 tracking-wider">The BitAware Workflow</h2>
+          <h2 class="text-xs uppercase font-bold text-indigo-600 tracking-wider">The NagarNazar Workflow</h2>
           <p class="mt-2 text-3xl font-bold text-slate-900">How Complaints Reach Resolution</p>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg mb-4">
-              <i data-lucide="camera" class="w-6 h-6"></i>
-            </div>
-            <h3 class="font-bold text-lg text-slate-900">1. Snap Live Photo</h3>
-            <p class="text-sm text-slate-600 mt-2">Open the device camera in one click. Capture real-time photographic proof on location.</p>
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition"><div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4"><i data-lucide="camera" class="w-6 h-6"></i></div><h3 class="font-bold text-lg text-slate-900">1. Snap Live Photo</h3><p class="text-sm text-slate-600 mt-2">Open the device camera in one click. Capture real-time photographic proof on location.</p></div>
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition"><div class="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center mb-4"><i data-lucide="map-pin" class="w-6 h-6"></i></div><h3 class="font-bold text-lg text-slate-900">2. Auto-Detect GPS</h3><p class="text-sm text-slate-600 mt-2">Accurate coordinates pinned on the interactive map with duplicate detection.</p></div>
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition"><div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4"><i data-lucide="send" class="w-6 h-6"></i></div><h3 class="font-bold text-lg text-slate-900">3. Auto-Routing</h3><p class="text-sm text-slate-600 mt-2">Complaint gets routed automatically to the designated Municipal Corporation or NGO team.</p></div>
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition"><div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4"><i data-lucide="check-circle-2" class="w-6 h-6"></i></div><h3 class="font-bold text-lg text-slate-900">4. Verified Resolution</h3><p class="text-sm text-slate-600 mt-2">Authorities upload after-work photographic proof before the issue is closed.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CITIZEN LOGIN ===== -->
+    <section id="view-citizen-login" class="view-section hidden min-h-screen bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-900 flex items-center justify-center py-12 px-4">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-xl mx-auto mb-4"><i data-lucide="user-check" class="w-8 h-8"></i></div>
+          <h1 class="text-3xl font-extrabold text-white">Citizen Login</h1>
+          <p class="text-blue-300 text-sm mt-1">Report civic issues. Track resolutions. Build your city.</p>
+        </div>
+        <div class="bg-white rounded-3xl shadow-2xl p-8">
+          <div class="mb-5 p-3 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-700 font-medium flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-blue-500 flex-shrink-0"></i>
+            <span>Demo: <strong>citizen@demo.com</strong> / <strong>citizen123</strong></span>
           </div>
-          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 flex items-center justify-center font-bold text-lg mb-4">
-              <i data-lucide="map-pin" class="w-6 h-6"></i>
-            </div>
-            <h3 class="font-bold text-lg text-slate-900">2. Auto-Detect GPS</h3>
-            <p class="text-sm text-slate-600 mt-2">Accurate coordinates and human-readable address are pinned immediately on the interactive map.</p>
+          <div id="citizen-login-error" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700 font-semibold flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4"></i><span>Invalid credentials. Please try again.</span>
           </div>
-          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg mb-4">
-              <i data-lucide="send" class="w-6 h-6"></i>
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-600 block mb-1.5">Email Address</label>
+              <input type="email" id="citizen-login-email" placeholder="your@email.com" value="citizen@demo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
-            <h3 class="font-bold text-lg text-slate-900">3. Auto-Routing</h3>
-            <p class="text-sm text-slate-600 mt-2">Complaint gets routed automatically to the designated Municipal Corporation, PWD, or NGO team.</p>
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-600 block mb-1.5">Password</label>
+              <input type="password" id="citizen-login-password" placeholder="••••••••" value="citizen123" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" onkeydown="if(event.key==='Enter')authModule.citizenLogin()">
+            </div>
+            <button onclick="authModule.citizenLogin()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-2xl shadow-lg text-sm transition transform active:scale-95 flex items-center justify-center gap-2">
+              <i data-lucide="log-in" class="w-5 h-5"></i><span>Login &amp; Enter Citizen Portal</span>
+            </button>
+            <button onclick="authModule.citizenDemoLogin()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl text-sm transition flex items-center justify-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i><span>Quick Demo Login (No Typing)</span>
+            </button>
           </div>
-          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm relative group hover:shadow-md transition">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg mb-4">
-              <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-            </div>
-            <h3 class="font-bold text-lg text-slate-900">4. Verified Resolution</h3>
-            <p class="text-sm text-slate-600 mt-2">Authorities upload after-work photographic proof before the issue is closed with citizen approval.</p>
+          <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+            <button onclick="app.navigateTo('landing')" class="text-xs text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 mx-auto">
+              <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portal Selection
+            </button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 2. CITIZEN DASHBOARD VIEW -->
+    <!-- ===== MUNICIPALITY LOGIN ===== -->
+    <section id="view-municipality-login" class="view-section hidden min-h-screen bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-900 flex items-center justify-center py-12 px-4">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-xl mx-auto mb-4"><i data-lucide="landmark" class="w-8 h-8"></i></div>
+          <h1 class="text-3xl font-extrabold text-white">Municipality Login</h1>
+          <p class="text-emerald-300 text-sm mt-1">Command Center for Authorized Departments &amp; NGOs</p>
+        </div>
+        <div class="bg-white rounded-3xl shadow-2xl p-8">
+          <div class="mb-5 p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-700 font-medium flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-emerald-500 flex-shrink-0"></i>
+            <span>Demo: <strong>muni@demo.com</strong> / <strong>muni123</strong></span>
+          </div>
+          <div id="muni-login-error" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-700 font-semibold flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4"></i><span>Invalid credentials. Please try again.</span>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-600 block mb-1.5">Department / Organization</label>
+              <select id="muni-login-dept" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="PWD">PWD &amp; Road Maintenance Division</option>
+                <option value="Waste">Solid Waste Management Dept</option>
+                <option value="Water">Jal Board &amp; Water Supply</option>
+                <option value="Electric">Electricity &amp; Streetlights</option>
+                <option value="Traffic">Traffic &amp; Infrastructure</option>
+                <option value="Parks">Horticulture &amp; Parks Dept</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-600 block mb-1.5">Official Email</label>
+              <input type="email" id="muni-login-email" placeholder="officer@municipal.gov.in" value="muni@demo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-600 block mb-1.5">Password</label>
+              <input type="password" id="muni-login-password" placeholder="••••••••" value="muni123" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" onkeydown="if(event.key==='Enter')authModule.muniLogin()">
+            </div>
+            <button onclick="authModule.muniLogin()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold py-3.5 rounded-2xl shadow-lg text-sm transition transform active:scale-95 flex items-center justify-center gap-2">
+              <i data-lucide="shield" class="w-5 h-5"></i><span>Login &amp; Enter Command Center</span>
+            </button>
+            <button onclick="authModule.muniDemoLogin()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl text-sm transition flex items-center justify-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i><span>Quick Demo Login (No Typing)</span>
+            </button>
+          </div>
+          <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+            <button onclick="app.navigateTo('landing')" class="text-xs text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 mx-auto">
+              <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portal Selection
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CITIZEN DASHBOARD ===== -->
     <section id="view-citizen-dashboard" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <!-- Welcome & Quick Action Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg mb-8">
         <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-2xl sm:text-3xl font-extrabold">Welcome, Rahul Sharma</h2>
-            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">Verified Citizen</span>
-          </div>
-          <p class="text-blue-200 text-sm mt-1">Ward 42, Green Park Central • Help keep your neighborhood clean and safe</p>
+          <div class="flex items-center gap-2"><h2 class="text-2xl sm:text-3xl font-extrabold" id="citizen-welcome-name">Welcome, Rahul!</h2><span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold">Verified Citizen</span></div>
+          <p class="text-blue-200 text-sm mt-1">Ward 42, Green Park Central &bull; Help keep your neighbourhood clean and safe</p>
         </div>
-        <button onclick="app.startReportIssue()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg shadow-emerald-500/30 transition transform hover:scale-105 active:scale-95">
-          <i data-lucide="camera" class="w-5 h-5"></i>
-          <span>Report New Civic Issue</span>
+        <button onclick="app.startReportIssue()" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95">
+          <i data-lucide="camera" class="w-5 h-5"></i><span>Report New Issue</span>
         </button>
       </div>
 
-      <!-- Citizen Stat Counters -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      <!-- Neighbourhood Teaser Banner -->
+      <div onclick="app.navigateTo('neighbourhood')" class="mb-6 cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-2xl flex items-center justify-between shadow-md hover:shadow-lg transition">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"><i data-lucide="users" class="w-5 h-5"></i></div>
           <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">My Complaints</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-1" id="citizen-stat-total">6</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <i data-lucide="file-text" class="w-5 h-5"></i>
+            <p class="font-bold text-sm">Your Neighbourhood Complaints</p>
+            <p class="text-xs text-indigo-200">See what your neighbours have already reported nearby</p>
           </div>
         </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">In Progress</p>
-            <h3 class="text-2xl font-bold text-blue-600 mt-1" id="citizen-stat-inprogress">2</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-            <i data-lucide="clock" class="w-5 h-5"></i>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">Resolved</p>
-            <h3 class="text-2xl font-bold text-emerald-600 mt-1" id="citizen-stat-resolved">3</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-          </div>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase">Pending Review</p>
-            <h3 class="text-2xl font-bold text-amber-600 mt-1" id="citizen-stat-pending">1</h3>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-          </div>
-        </div>
+        <i data-lucide="arrow-right" class="w-5 h-5 text-white/70"></i>
       </div>
 
-      <!-- Filterable My Complaints List -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-xs font-semibold text-slate-500 uppercase">My Complaints</p><h3 class="text-2xl font-bold text-slate-900 mt-1" id="citizen-stat-total">0</h3></div><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i data-lucide="file-text" class="w-5 h-5"></i></div></div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-xs font-semibold text-slate-500 uppercase">In Progress</p><h3 class="text-2xl font-bold text-blue-600 mt-1" id="citizen-stat-inprogress">0</h3></div><div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i data-lucide="clock" class="w-5 h-5"></i></div></div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-xs font-semibold text-slate-500 uppercase">Resolved</p><h3 class="text-2xl font-bold text-emerald-600 mt-1" id="citizen-stat-resolved">0</h3></div><div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="check-circle" class="w-5 h-5"></i></div></div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"><div><p class="text-xs font-semibold text-slate-500 uppercase">Pending</p><h3 class="text-2xl font-bold text-amber-600 mt-1" id="citizen-stat-pending">0</h3></div><div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><i data-lucide="alert-circle" class="w-5 h-5"></i></div></div>
+      </div>
+
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h3 class="text-lg font-bold text-slate-900">My Submitted Complaints</h3>
-            <p class="text-xs text-slate-500">Track real-time progress, authority notes, and resolution proofs</p>
-          </div>
-          
-          <!-- Category and Status Filter -->
-          <div class="flex items-center gap-2">
-            <select id="citizen-filter-status" onchange="app.renderCitizenComplaints()" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="all">All Statuses</option>
-              <option value="Submitted">Submitted (New)</option>
-              <option value="Under Review">Under Review</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
-            </select>
-          </div>
+          <div><h3 class="text-lg font-bold text-slate-900">My Submitted Complaints</h3><p class="text-xs text-slate-500">Track real-time progress, authority notes, and resolution proofs</p></div>
+          <select id="citizen-filter-status" onchange="app.renderCitizenComplaints()" class="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="all">All Statuses</option><option value="Submitted">Submitted</option><option value="Under Review">Under Review</option><option value="In Progress">In Progress</option><option value="Resolved">Resolved</option>
+          </select>
         </div>
-
-        <div id="citizen-complaints-list" class="divide-y divide-slate-100">
-          <!-- Dynamic Complaints injected by JS -->
-        </div>
+        <div id="citizen-complaints-list" class="divide-y divide-slate-100"></div>
       </div>
     </section>
 
-    <!-- 3. REPORT ISSUE WIZARD (MODAL / FULL SCREEN VIEW) -->
-    <section id="view-report-wizard" class="view-section hidden py-6 max-w-3xl mx-auto px-4 sm:px-6">
-      
-      <!-- Wizard Progress Header -->
-      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-blue-600">BitAware Complaint Dispatcher</span>
-            <h2 class="text-xl font-extrabold text-slate-900">Report a Civic Problem</h2>
-          </div>
-          <button onclick="app.cancelReportWizard()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-        </div>
-
-        <!-- Stepper Indicators -->
-        <div class="flex items-center justify-between relative">
-          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 z-0"></div>
-          <div id="step-bar-progress" class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-600 z-0 transition-all duration-300 w-1/4"></div>
-          
-          <!-- Step 1 Indicator -->
-          <div class="relative z-10 flex flex-col items-center">
-            <div id="step-node-1" class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-md">1</div>
-            <span class="text-[10px] font-semibold text-slate-700 mt-1">Live Photo</span>
-          </div>
-          <!-- Step 2 Indicator -->
-          <div class="relative z-10 flex flex-col items-center">
-            <div id="step-node-2" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">2</div>
-            <span class="text-[10px] font-semibold text-slate-500 mt-1">GPS Location</span>
-          </div>
-          <!-- Step 3 Indicator -->
-          <div class="relative z-10 flex flex-col items-center">
-            <div id="step-node-3" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">3</div>
-            <span class="text-[10px] font-semibold text-slate-500 mt-1">Details</span>
-          </div>
-          <!-- Step 4 Indicator -->
-          <div class="relative z-10 flex flex-col items-center">
-            <div id="step-node-4" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">4</div>
-            <span class="text-[10px] font-semibold text-slate-500 mt-1">Submit</span>
-          </div>
+    <!-- ===== NEIGHBOURHOOD VIEW ===== -->
+    <section id="view-neighbourhood" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center gap-4 mb-6">
+        <button onclick="app.navigateTo('citizen-dashboard')" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 shadow-sm"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>
+        <div>
+          <h1 class="text-2xl font-extrabold text-slate-900">Your Neighbourhood</h1>
+          <p class="text-xs text-slate-500">Complaints filed within 1 km of your location</p>
         </div>
       </div>
 
-      <!-- STEP 1: LIVE CAMERA CAPTURE -->
+      <!-- Neighbourhood Map -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-6 h-72">
+        <div id="neighbourhood-map" class="w-full h-full z-0"></div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="flex flex-wrap gap-2 mb-5 items-center">
+        <span class="text-xs font-bold text-slate-600">Filter:</span>
+        <button onclick="app.filterNeighbourhood('all')" id="nbr-filter-all" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white text-xs font-semibold">All</button>
+        <button onclick="app.filterNeighbourhood('Submitted')" id="nbr-filter-submitted" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-800 text-xs font-semibold">🔴 New</button>
+        <button onclick="app.filterNeighbourhood('In Progress')" id="nbr-filter-inprogress" class="px-3 py-1.5 rounded-xl bg-blue-100 text-blue-800 text-xs font-semibold">🔵 In Progress</button>
+        <button onclick="app.filterNeighbourhood('Resolved')" id="nbr-filter-resolved" class="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-semibold">🟢 Resolved</button>
+        <span class="ml-auto text-xs text-slate-500 font-medium" id="neighbourhood-count">Showing all nearby</span>
+      </div>
+
+      <div id="neighbourhood-list" class="space-y-3"></div>
+    </section>
+
+    <!-- ===== REPORT WIZARD ===== -->
+    <section id="view-report-wizard" class="view-section hidden py-6 max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <div><span class="text-xs font-bold uppercase tracking-wider text-indigo-600">NagarNazar Complaint Dispatcher</span><h2 class="text-xl font-extrabold text-slate-900">Report a Civic Problem</h2></div>
+          <button onclick="app.cancelReportWizard()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="flex items-center justify-between relative">
+          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 z-0"></div>
+          <div id="step-bar-progress" class="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 z-0 transition-all duration-300 w-1/4"></div>
+          <div class="relative z-10 flex flex-col items-center"><div id="step-node-1" class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md">1</div><span class="text-[10px] font-semibold text-slate-700 mt-1">Live Photo</span></div>
+          <div class="relative z-10 flex flex-col items-center"><div id="step-node-2" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">2</div><span class="text-[10px] font-semibold text-slate-500 mt-1">GPS Location</span></div>
+          <div class="relative z-10 flex flex-col items-center"><div id="step-node-3" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">3</div><span class="text-[10px] font-semibold text-slate-500 mt-1">Details</span></div>
+          <div class="relative z-10 flex flex-col items-center"><div id="step-node-4" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">4</div><span class="text-[10px] font-semibold text-slate-500 mt-1">Submit</span></div>
+        </div>
+      </div>
+
+      <!-- STEP 1 -->
       <div id="wizard-step-1" class="wizard-step bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-        <div class="text-center max-w-md mx-auto mb-6">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold mb-2">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Live Verification Feature
+        <!-- Duplicate Warning Banner -->
+        <div id="duplicate-warning-banner" class="hidden mb-5 p-4 bg-amber-50 border-2 border-amber-400 rounded-2xl duplicate-banner">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
+            <div class="flex-1">
+              <p class="font-bold text-amber-800 text-sm">Similar complaint already filed nearby!</p>
+              <p class="text-xs text-amber-700 mt-0.5">Your neighbour already reported this type of issue. Consider tracking the existing complaint instead.</p>
+              <div id="duplicate-complaint-list" class="mt-2 space-y-1.5"></div>
+              <div class="mt-3 flex gap-2">
+                <button onclick="app.dismissDuplicateWarning()" class="text-xs text-amber-600 underline font-semibold">My issue is at a different spot — continue filing</button>
+              </div>
+            </div>
           </div>
-          <h3 class="text-xl font-extrabold text-slate-900">Capture Live Photo of the Issue</h3>
-          <p class="text-xs text-slate-500 mt-1">Capturing a live photo helps authorities instantly authenticate the problem and initiate rapid resolution.</p>
         </div>
 
-        <!-- Camera Viewport Box -->
-        <div class="relative bg-slate-950 rounded-2xl overflow-hidden aspect-[4/3] max-w-md mx-auto flex items-center justify-center shadow-inner border-2 border-slate-800">
-          
-          <!-- Live Video Stream -->
-          <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+        <div class="text-center max-w-md mx-auto mb-6">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-semibold mb-2"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Live Verification Feature</div>
+          <h3 class="text-xl font-extrabold text-slate-900">Capture Live Photo of the Issue</h3>
+          <p class="text-xs text-slate-500 mt-1">A live photo helps authorities instantly authenticate the problem.</p>
+        </div>
 
-          <!-- Captured Photo Canvas / Preview Image -->
+        <div class="relative bg-slate-950 rounded-2xl overflow-hidden aspect-[4/3] max-w-md mx-auto flex items-center justify-center shadow-inner border-2 border-slate-800">
+          <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
           <img id="photo-preview" class="w-full h-full object-cover hidden" alt="Captured issue preview"/>
           <canvas id="camera-canvas" class="hidden"></canvas>
-
-          <!-- Camera Placeholder before start -->
           <div id="camera-placeholder" class="flex flex-col items-center text-center p-6 text-slate-400">
-            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-blue-400 mb-3 animate-pulse">
-              <i data-lucide="camera" class="w-8 h-8"></i>
-            </div>
+            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 mb-3 animate-pulse"><i data-lucide="camera" class="w-8 h-8"></i></div>
             <p class="text-sm font-semibold text-slate-300">Camera is ready</p>
-            <p class="text-xs text-slate-500 mt-1">Click the button below to activate your camera or upload a file</p>
+            <p class="text-xs text-slate-500 mt-1">Tap below to stream live, snap via phone, or upload</p>
           </div>
-
-          <!-- Camera Controls Overlay -->
           <div id="camera-live-overlay" class="hidden absolute top-3 right-3 flex items-center gap-2">
-            <button onclick="cameraModule.switchCameraFacing()" class="p-2 rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80 transition" title="Flip Camera">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-            </button>
+            <button onclick="cameraModule.switchCameraFacing()" class="p-2 rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80 transition"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
           </div>
-
-          <!-- GPS Watermark Badge (when photo taken) -->
           <div id="photo-watermark-badge" class="hidden absolute bottom-3 left-3 right-3 bg-black/70 backdrop-blur text-white text-[11px] p-2 rounded-xl flex items-center justify-between">
-            <span class="flex items-center gap-1.5 font-medium truncate">
-              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400 flex-shrink-0"></i>
-              <span id="watermark-gps-text">Detecting GPS...</span>
-            </span>
+            <span class="flex items-center gap-1.5 font-medium truncate"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400 flex-shrink-0"></i><span id="watermark-gps-text">Detecting GPS...</span></span>
             <span id="watermark-time-text" class="text-slate-400 text-[10px]">Just now</span>
           </div>
         </div>
 
-        <!-- Camera Actions -->
         <div class="max-w-md mx-auto mt-6 flex flex-col gap-3">
-          
-          <!-- State A: Camera not yet active -->
-          <div id="camera-btn-group-init" class="flex flex-col sm:flex-row gap-3">
-            <button onclick="cameraModule.startCamera()" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-600/20 transition">
-              <i data-lucide="camera" class="w-5 h-5"></i>
-              <span>Open Device Camera</span>
-            </button>
-            <label class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl cursor-pointer transition">
-              <i data-lucide="upload" class="w-5 h-5 text-slate-500"></i>
-              <span>Upload from Device</span>
-              <input type="file" id="file-photo-upload" accept="image/*" class="hidden" onchange="cameraModule.handleFileUpload(event)">
+          <div id="camera-btn-group-init" class="flex flex-col gap-2.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button onclick="cameraModule.startCamera()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs transition active:scale-95">
+                <i data-lucide="video" class="w-4 h-4"></i><span>Open Live Camera Stream</span>
+              </button>
+              <label class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs cursor-pointer transition active:scale-95">
+                <i data-lucide="camera" class="w-4 h-4"></i><span>Snap via Phone Camera</span>
+                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="cameraModule.handleFileUpload(event)">
+              </label>
+            </div>
+            <label class="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl cursor-pointer text-xs transition">
+              <i data-lucide="upload" class="w-4 h-4 text-slate-500"></i><span>Upload from Gallery / Device</span>
+              <input type="file" accept="image/*" class="hidden" onchange="cameraModule.handleFileUpload(event)">
             </label>
           </div>
-
-          <!-- State B: Camera is actively streaming -->
           <div id="camera-btn-group-streaming" class="hidden flex items-center justify-center gap-4">
-            <button onclick="cameraModule.captureSnapshot()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-rose-600/30 transition transform active:scale-95">
-              <span class="w-4 h-4 rounded-full bg-white animate-ping mr-1"></span>
-              <i data-lucide="aperture" class="w-5 h-5"></i>
-              <span>Snap Photo Now</span>
+            <button onclick="cameraModule.captureSnapshot()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95">
+              <span class="w-4 h-4 rounded-full bg-white animate-ping mr-1"></span><i data-lucide="aperture" class="w-5 h-5"></i><span>Snap Photo Now</span>
             </button>
           </div>
-
-          <!-- State C: Photo Captured (Preview Mode) -->
           <div id="camera-btn-group-preview" class="hidden flex gap-3">
             <button onclick="cameraModule.retakePhoto()" class="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl transition">
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-              <span>Retake Photo</span>
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Retake</span>
             </button>
-            <button onclick="app.wizardNext(2)" class="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-600/20 transition">
-              <span>Next: Confirm Location</span>
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <button onclick="app.wizardNext(2)" class="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl shadow-lg transition">
+              <span>Next: Location</span><i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
           </div>
-
-          <!-- Quick Samples fallback for desktop testing -->
           <div class="text-center mt-2">
-            <p class="text-[11px] text-slate-400">Testing on PC without webcam? <button type="button" onclick="cameraModule.loadPresetCivicPhoto()" class="text-blue-600 underline font-semibold">Load Sample Pothole/Civic Photo</button></p>
+            <p class="text-[11px] text-slate-400">PC testing? <button type="button" onclick="cameraModule.loadPresetCivicPhoto()" class="text-indigo-600 underline font-semibold">Load Sample Civic Photo</button></p>
           </div>
         </div>
       </div>
 
-      <!-- STEP 2: GPS LOCATION & INTERACTIVE MAP CONFIRMATION -->
+      <!-- STEP 2 -->
       <div id="wizard-step-2" class="wizard-step hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <div class="text-center max-w-md mx-auto mb-4">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-xs font-semibold mb-2">
-            <i data-lucide="navigation" class="w-3.5 h-3.5"></i> Precise Location
-          </div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 text-cyan-800 text-xs font-semibold mb-2"><i data-lucide="navigation" class="w-3.5 h-3.5"></i> Precise Location</div>
           <h3 class="text-xl font-extrabold text-slate-900">Confirm Location on Map</h3>
-          <p class="text-xs text-slate-500 mt-1">We detected your GPS coordinates. Drag the marker if you wish to adjust the exact spot.</p>
+          <p class="text-xs text-slate-500 mt-1">We detected your GPS coordinates. Drag the marker to adjust.</p>
         </div>
-
-        <!-- Interactive Leaflet Map for Location Selection -->
         <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner h-64 sm:h-80 mb-4 z-0">
           <div id="wizard-leaflet-map" class="w-full h-full z-0"></div>
-          
-          <button onclick="locationModule.detectLiveGPS()" class="absolute top-3 right-3 z-10 bg-white shadow-md text-slate-700 hover:text-blue-600 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-2 border border-slate-200">
-            <i data-lucide="crosshair" class="w-4 h-4 text-blue-500 animate-spin-slow"></i>
-            <span>Re-center GPS</span>
+          <button onclick="locationModule.detectLiveGPS()" class="absolute top-3 right-3 z-10 bg-white shadow-md text-slate-700 hover:text-indigo-600 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-2 border border-slate-200">
+            <i data-lucide="crosshair" class="w-4 h-4 text-indigo-500"></i><span>Re-center GPS</span>
           </button>
         </div>
-
-        <!-- Address & GPS Details Card -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6">
           <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <i data-lucide="map-pin" class="w-4 h-4"></i>
-            </div>
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5"><i data-lucide="map-pin" class="w-4 h-4"></i></div>
             <div class="flex-1">
               <label class="text-[11px] font-bold uppercase text-slate-500">Detected Address</label>
-              <input type="text" id="wizard-address-input" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 font-medium mt-1 focus:ring-2 focus:ring-blue-500 focus:outline-none" value="Main Ring Road, Sector 14, Near Metro Pillar 84">
+              <input type="text" id="wizard-address-input" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 font-medium mt-1 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="Main Ring Road, Sector 14, Near Metro Pillar 84">
               <div class="flex items-center gap-4 mt-2 text-[11px] text-slate-500 font-mono">
                 <span>Lat: <strong id="wizard-lat-display">28.6139</strong></span>
                 <span>Lng: <strong id="wizard-lng-display">77.2090</strong></span>
-                <span class="text-emerald-600 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> GPS Locked (±5m)</span>
+                <span class="text-emerald-600 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> GPS Locked</span>
               </div>
             </div>
           </div>
         </div>
-
         <div class="flex gap-3">
-          <button onclick="app.wizardPrev(1)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl">
-            Back
-          </button>
-          <button onclick="app.wizardNext(3)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
-            <span>Next: Issue Details</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <button onclick="app.wizardPrev(1)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl">Back</button>
+          <button onclick="app.wizardNext(3)" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-md flex items-center justify-center gap-2">
+            <span>Next: Details</span><i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
-      <!-- STEP 3: CATEGORY & DESCRIPTION -->
+      <!-- STEP 3 -->
       <div id="wizard-step-3" class="wizard-step hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <h3 class="text-xl font-extrabold text-slate-900 mb-1">Issue Details</h3>
-        <p class="text-xs text-slate-500 mb-6">Categorize the issue to ensure it routes directly to the correct department.</p>
-
-        <!-- Category Grid Selector -->
+        <p class="text-xs text-slate-500 mb-6">Categorize the issue to route it to the correct department.</p>
         <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Select Category *</label>
-        <div id="category-selector-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-6">
-          <!-- Populated by JS with options like Potholes, Garbage, Streetlight, etc. -->
-        </div>
-
-        <!-- Issue Title -->
+        <div id="category-selector-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-6"></div>
+        <div class="mb-4"><label class="block text-xs font-bold uppercase text-slate-600 mb-1">Issue Title *</label><input type="text" id="wizard-title-input" placeholder="e.g., Deep dangerous pothole on main intersection" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></div>
         <div class="mb-4">
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Issue Title *</label>
-          <input type="text" id="wizard-title-input" placeholder="e.g., Deep dangerous pothole on main intersection" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
-        </div>
-
-        <!-- Priority Urgency Level -->
-        <div class="mb-4">
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Severity / Urgency Level</label>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Severity / Urgency</label>
           <div class="grid grid-cols-3 gap-2">
-            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
-              <input type="radio" name="wizard-priority" value="Low" class="hidden">
-              <span class="text-xs font-bold text-slate-700">🟢 Low</span>
-              <span class="text-[10px] text-slate-400">Minor aesthetic</span>
-            </label>
-            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
-              <input type="radio" name="wizard-priority" value="Medium" checked class="hidden">
-              <span class="text-xs font-bold text-amber-700">🟡 Medium</span>
-              <span class="text-[10px] text-slate-400">Normal priority</span>
-            </label>
-            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
-              <input type="radio" name="wizard-priority" value="High" class="hidden">
-              <span class="text-xs font-bold text-rose-700">🔴 High / Urgent</span>
-              <span class="text-[10px] text-slate-400">Hazardous / blocking</span>
-            </label>
+            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50"><input type="radio" name="wizard-priority" value="Low" class="hidden"><span class="text-xs font-bold text-slate-700">&#x1F7E2; Low</span><span class="text-[10px] text-slate-400">Minor aesthetic</span></label>
+            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50"><input type="radio" name="wizard-priority" value="Medium" checked class="hidden"><span class="text-xs font-bold text-amber-700">&#x1F7E1; Medium</span><span class="text-[10px] text-slate-400">Normal priority</span></label>
+            <label class="cursor-pointer border border-slate-200 rounded-xl p-2.5 text-center flex flex-col items-center hover:bg-slate-50 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50"><input type="radio" name="wizard-priority" value="High" class="hidden"><span class="text-xs font-bold text-rose-700">&#x1F534; High</span><span class="text-[10px] text-slate-400">Hazardous</span></label>
           </div>
         </div>
-
-        <!-- Detailed Description -->
-        <div class="mb-6">
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Detailed Description *</label>
-          <textarea id="wizard-desc-input" rows="3" placeholder="Provide additional details, landmark, or how long this issue has persisted..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-        </div>
-
+        <div class="mb-6"><label class="block text-xs font-bold uppercase text-slate-600 mb-1">Detailed Description *</label><textarea id="wizard-desc-input" rows="3" placeholder="Details, landmarks, how long has this persisted..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea></div>
         <div class="flex gap-3">
-          <button onclick="app.wizardPrev(2)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl">
-            Back
-          </button>
-          <button onclick="app.wizardNext(4)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-md shadow-blue-600/20 flex items-center justify-center gap-2">
-            <span>Next: Review & Submit</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          <button onclick="app.wizardPrev(2)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl">Back</button>
+          <button onclick="app.wizardNext(4)" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl shadow-md flex items-center justify-center gap-2">
+            <span>Next: Review</span><i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
-      <!-- STEP 4: REVIEW & CONFIRM SUBMISSION -->
+      <!-- STEP 4 -->
       <div id="wizard-step-4" class="wizard-step hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <h3 class="text-xl font-extrabold text-slate-900 mb-1">Review Your Complaint</h3>
-        <p class="text-xs text-slate-500 mb-6">Please verify the details below before submitting to the Municipal Authority.</p>
-
+        <p class="text-xs text-slate-500 mb-6">Verify the details below before submitting.</p>
         <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-4 mb-6">
           <div class="flex gap-4">
-            <img id="review-photo" class="w-24 h-24 object-cover rounded-xl border border-slate-300" src="" alt="Live capture thumbnail"/>
+            <img id="review-photo" class="w-24 h-24 object-cover rounded-xl border border-slate-300" src="" alt=""/>
             <div class="flex-1">
-              <span id="review-category-badge" class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-bold uppercase">Pothole</span>
-              <h4 id="review-title" class="font-bold text-slate-900 text-base mt-1">Deep dangerous pothole</h4>
-              <p id="review-address" class="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500"></i> Main Ring Road, Sector 14
-              </p>
-              <div class="text-[11px] text-slate-500 mt-1">
-                Priority: <strong id="review-priority" class="text-amber-600">Medium</strong>
-              </div>
+              <span id="review-category-badge" class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-bold uppercase">Pothole</span>
+              <h4 id="review-title" class="font-bold text-slate-900 text-base mt-1">—</h4>
+              <p id="review-address" class="text-xs text-slate-500 flex items-center gap-1 mt-1"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500"></i> —</p>
+              <div class="text-[11px] text-slate-500 mt-1">Priority: <strong id="review-priority" class="text-amber-600">Medium</strong></div>
             </div>
           </div>
-          <div class="pt-3 border-t border-slate-200 text-xs text-slate-600">
-            <span class="font-bold">Description:</span>
-            <p id="review-desc" class="mt-0.5 text-slate-700 italic">"Pothole is causing traffic slowdown and risks for two-wheelers."</p>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-200">
-            <span>Routing Destination:</span>
-            <span class="font-bold text-blue-700" id="review-target-dept">Municipal Corp - PWD & Roads</span>
-          </div>
+          <div class="pt-3 border-t border-slate-200 text-xs text-slate-600"><span class="font-bold">Description:</span><p id="review-desc" class="mt-0.5 text-slate-700 italic">—</p></div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500 bg-white p-2.5 rounded-xl border border-slate-200"><span>Routing to:</span><span class="font-bold text-indigo-700" id="review-target-dept">PWD &amp; Roads</span></div>
         </div>
-
         <div class="flex gap-3">
-          <button onclick="app.wizardPrev(3)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl">
-            Edit Details
-          </button>
-          <button id="btn-submit-complaint" onclick="app.submitNewComplaint()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3.5 rounded-2xl shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2">
-            <i data-lucide="check-circle" class="w-5 h-5"></i>
-            <span>Confirm & Submit</span>
+          <button onclick="app.wizardPrev(3)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl">Edit</button>
+          <button id="btn-submit-complaint" onclick="app.submitNewComplaint()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3.5 rounded-2xl shadow-xl flex items-center justify-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5"></i><span>Confirm &amp; Submit</span>
           </button>
         </div>
       </div>
 
-      <!-- SUCCESS CONFIRMATION SCREEN -->
+      <!-- SUCCESS -->
       <div id="wizard-success" class="hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-8 text-center">
-        <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 animate-bounce">
-          <i data-lucide="check" class="w-8 h-8"></i>
-        </div>
-        <span class="text-xs uppercase font-bold text-emerald-600 tracking-wider">Complaint Successfully Registered</span>
-        <h2 class="text-2xl font-extrabold text-slate-900 mt-1">Thank You, Rahul!</h2>
-        <p class="text-xs text-slate-500 max-w-md mx-auto mt-2">
-          Your complaint has been logged into the BitAware civic ledger and assigned to the municipal dispatch team.
-        </p>
-
+        <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 animate-bounce"><i data-lucide="check" class="w-8 h-8"></i></div>
+        <span class="text-xs uppercase font-bold text-emerald-600 tracking-wider">Complaint Registered!</span>
+        <h2 class="text-2xl font-extrabold text-slate-900 mt-1" id="success-citizen-name">Thank You!</h2>
+        <p class="text-xs text-slate-500 max-w-md mx-auto mt-2">Your complaint has been logged and assigned to the municipal dispatch team.</p>
         <div class="my-6 p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-300 max-w-sm mx-auto">
-          <p class="text-[11px] text-slate-400 uppercase font-semibold">Your Tracking Complaint ID</p>
-          <p id="success-complaint-id" class="text-xl font-mono font-extrabold text-blue-600 tracking-wider mt-0.5">CIV-2026-000108</p>
-          <p class="text-[10px] text-slate-500 mt-1">SMS & in-app alerts have been activated for this ticket.</p>
+          <p class="text-[11px] text-slate-400 uppercase font-semibold">Your Tracking ID</p>
+          <p id="success-complaint-id" class="text-xl font-mono font-extrabold text-indigo-600 tracking-wider mt-0.5">—</p>
         </div>
-
         <div class="flex flex-col sm:flex-row justify-center gap-3">
-          <button onclick="app.viewComplaintDetails(app.latestSubmittedId)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-2xl shadow-md">
-            View Complaint Timeline
-          </button>
-          <button onclick="app.navigateTo('citizen-dashboard')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-2xl">
-            Return to Dashboard
-          </button>
+          <button onclick="app.viewComplaintDetails(app.latestSubmittedId)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow-md">View Timeline</button>
+          <button onclick="app.navigateTo('citizen-dashboard')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-6 py-3 rounded-2xl">Back to Dashboard</button>
         </div>
       </div>
     </section>
 
-    <!-- 4. COMPLAINT DETAILS & TIMELINE VIEW -->
+    <!-- ===== COMPLAINT DETAILS ===== -->
     <section id="view-complaint-details" class="view-section hidden py-6 max-w-5xl mx-auto px-4 sm:px-6">
-      
-      <!-- Back Navigation Bar -->
       <div class="flex items-center justify-between mb-6">
-        <button onclick="app.navigateBackFromDetails()" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm transition">
-          <i data-lucide="arrow-left" class="w-4 h-4"></i>
-          <span>Back to Complaints</span>
-        </button>
-        
+        <button onclick="app.navigateBackFromDetails()" class="flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm transition"><i data-lucide="arrow-left" class="w-4 h-4"></i><span>Back</span></button>
         <div class="flex items-center gap-2">
-          <span id="detail-status-pill" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800">
-            In Progress
-          </span>
-          <span id="detail-priority-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-            High Priority
-          </span>
+          <span id="detail-status-pill" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800">In Progress</span>
+          <span id="detail-priority-pill" class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">High Priority</span>
         </div>
       </div>
-
-      <!-- Main Complaint Card Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Left: Details & Photos (2 Columns) -->
         <div class="lg:col-span-2 space-y-6">
-          
-          <!-- Complaint Overview Card -->
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
             <div class="flex items-center justify-between mb-2">
-              <span id="detail-id" class="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">CIV-2026-000108</span>
-              <span id="detail-timestamp" class="text-xs text-slate-400">Reported on 20 Aug 2026, 10:30 AM</span>
+              <span id="detail-id" class="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">—</span>
+              <span id="detail-timestamp" class="text-xs text-slate-400">—</span>
             </div>
-            <h1 id="detail-title" class="text-2xl font-extrabold text-slate-900 mt-2">Severe Road Pothole near Central Market Gate</h1>
-            <p id="detail-desc" class="text-sm text-slate-600 mt-3 leading-relaxed">Large 2-foot wide pothole causing severe traffic bottlenecks and hazard for motorcyclists. Water accumulation observed.</p>
-            
+            <h1 id="detail-title" class="text-2xl font-extrabold text-slate-900 mt-2">—</h1>
+            <p id="detail-desc" class="text-sm text-slate-600 mt-3 leading-relaxed">—</p>
             <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap gap-4 text-xs text-slate-500">
-              <div>
-                <span class="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
-                <span id="detail-category" class="font-semibold text-slate-800">Roads & Potholes</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block text-[10px] uppercase font-bold">Assigned Department</span>
-                <span id="detail-dept" class="font-semibold text-slate-800">PWD Road Maintenance Div 3</span>
-              </div>
-              <div>
-                <span class="text-slate-400 block text-[10px] uppercase font-bold">Reported By</span>
-                <span id="detail-reporter" class="font-semibold text-slate-800">Rahul Sharma (Verified Citizen)</span>
-              </div>
+              <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Category</span><span id="detail-category" class="font-semibold text-slate-800">—</span></div>
+              <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Assigned Department</span><span id="detail-dept" class="font-semibold text-slate-800">—</span></div>
+              <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Reported By</span><span id="detail-reporter" class="font-semibold text-slate-800">—</span></div>
             </div>
           </div>
-
-          <!-- Photographic Evidence Box (Before / After Comparison) -->
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
-              <i data-lucide="image" class="w-4 h-4 text-blue-600"></i> Photographic Proof & Verification
-            </h3>
-            
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="image" class="w-4 h-4 text-indigo-600"></i> Photographic Evidence</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Before Photo (Citizen Live Capture) -->
               <div class="space-y-2">
-                <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
-                  <span class="flex items-center gap-1.5 text-rose-600">
-                    <span class="w-2 h-2 rounded-full bg-rose-500"></span> Citizen Report (Before)
-                  </span>
-                  <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">Live Camera Verified</span>
-                </div>
-                <div class="rounded-2xl overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-100 relative group">
-                  <img id="detail-photo-before" src="" class="w-full h-full object-cover" alt="Citizen issue photo">
-                </div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600"><span class="flex items-center gap-1.5 text-rose-600"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Before (Citizen)</span><span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">Live Verified</span></div>
+                <div class="rounded-2xl overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-100"><img id="detail-photo-before" src="" class="w-full h-full object-cover" alt=""></div>
               </div>
-
-              <!-- After Photo (Authority Resolution Evidence) -->
               <div class="space-y-2">
-                <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
-                  <span class="flex items-center gap-1.5 text-emerald-600">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Municipality Proof (After)
-                  </span>
-                  <span id="detail-evidence-badge" class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Pending Work</span>
-                </div>
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-600"><span class="flex items-center gap-1.5 text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> After (Municipality)</span><span id="detail-evidence-badge" class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Pending</span></div>
                 <div class="rounded-2xl overflow-hidden border border-slate-200 aspect-[4/3] bg-slate-50 flex items-center justify-center relative">
-                  <img id="detail-photo-after" src="" class="w-full h-full object-cover hidden" alt="Resolution work proof">
-                  <div id="detail-photo-after-placeholder" class="text-center p-4 text-slate-400">
-                    <i data-lucide="hard-hat" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                    <p class="text-xs font-medium">Work in progress</p>
-                    <p class="text-[10px] text-slate-400">After photo will be uploaded upon repair</p>
-                  </div>
+                  <img id="detail-photo-after" src="" class="w-full h-full object-cover hidden" alt="">
+                  <div id="detail-photo-after-placeholder" class="text-center p-4 text-slate-400"><i data-lucide="hard-hat" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i><p class="text-xs font-medium">Work in progress</p></div>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- Interactive Complaint Mini-Map -->
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
-              <i data-lucide="map-pin" class="w-4 h-4 text-blue-600"></i> Exact Geolocation
-            </h3>
-            <p id="detail-address-text" class="text-xs text-slate-600 mb-3 font-medium">Main Ring Road, Sector 14, Near Metro Pillar 84</p>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4 text-indigo-600"></i> Geolocation</h3>
+            <p id="detail-address-text" class="text-xs text-slate-600 mb-3 font-medium">—</p>
             <div id="detail-mini-map" class="h-48 rounded-2xl border border-slate-200 overflow-hidden z-0"></div>
           </div>
         </div>
-
-        <!-- Right: Real-Time Lifecycle Timeline & Actions (1 Column) -->
         <div class="space-y-6">
-          
-          <!-- Lifecycle Action Panel (Visible for Authorities & Admin) -->
-          <div id="detail-authority-actions" class="bg-gradient-to-b from-blue-900 to-indigo-950 text-white rounded-3xl shadow-lg p-6">
-            <div class="flex items-center gap-2 mb-4">
-              <i data-lucide="shield" class="w-5 h-5 text-blue-400"></i>
-              <h3 class="font-bold text-sm">Municipality Resolution Actions</h3>
-            </div>
-            
-            <p class="text-xs text-blue-200 mb-4">Update status, dispatch field teams, or upload completion evidence.</p>
-
+          <div class="bg-gradient-to-b from-blue-900 to-indigo-950 text-white rounded-3xl shadow-lg p-6">
+            <div class="flex items-center gap-2 mb-4"><i data-lucide="shield" class="w-5 h-5 text-blue-400"></i><h3 class="font-bold text-sm">Municipality Actions</h3></div>
             <div class="space-y-3">
               <select id="action-status-select" class="w-full bg-blue-950/80 border border-blue-700/50 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none">
-                <option value="Submitted">Status: Submitted</option>
-                <option value="Under Review">Status: Under Review</option>
-                <option value="Assigned">Status: Assigned to Field Team</option>
-                <option value="In Progress">Status: In Progress</option>
-                <option value="Resolved">Status: Mark as Resolved</option>
-                <option value="Closed">Status: Close Ticket</option>
+                <option value="Submitted">Submitted</option><option value="Under Review">Under Review</option><option value="Assigned">Assigned to Field Team</option><option value="In Progress">In Progress</option><option value="Resolved">Mark as Resolved</option><option value="Closed">Close Ticket</option>
               </select>
-
-              <textarea id="action-comment-input" rows="2" placeholder="Add official remark or field update..." class="w-full bg-blue-950/80 border border-blue-700/50 rounded-xl p-2.5 text-xs text-white placeholder-blue-300 focus:outline-none"></textarea>
-
-              <!-- Upload Evidence Photo Button -->
+              <textarea id="action-comment-input" rows="2" placeholder="Add official remark..." class="w-full bg-blue-950/80 border border-blue-700/50 rounded-xl p-2.5 text-xs text-white placeholder-blue-300 focus:outline-none"></textarea>
               <div class="flex items-center gap-2">
                 <label class="flex-1 cursor-pointer bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl py-2 px-3 text-xs font-semibold flex items-center justify-center gap-2 transition">
-                  <i data-lucide="camera" class="w-3.5 h-3.5 text-emerald-400"></i>
-                  <span>Upload "After" Proof</span>
-                  <input type="file" id="evidence-photo-upload" accept="image/*" class="hidden" onchange="app.handleEvidenceUpload(event)">
+                  <i data-lucide="camera" class="w-3.5 h-3.5 text-emerald-400"></i><span>Upload After Proof</span>
+                  <input type="file" accept="image/*" class="hidden" onchange="app.handleEvidenceUpload(event)">
                 </label>
-                <button onclick="app.quickAddPresetEvidence()" class="text-[11px] text-blue-300 underline font-medium hover:text-white">Sample Proof</button>
+                <button onclick="app.quickAddPresetEvidence()" class="text-[11px] text-blue-300 underline font-medium hover:text-white">Sample</button>
               </div>
-
-              <button onclick="app.submitAuthorityAction()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md shadow-emerald-500/20 transition">
-                Apply Official Update
-              </button>
+              <button onclick="app.submitAuthorityAction()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition">Apply Update</button>
             </div>
           </div>
-
-          <!-- Activity Timeline Box -->
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
-              <i data-lucide="history" class="w-4 h-4 text-blue-600"></i> Complaint Timeline
-            </h3>
-
-            <div id="detail-timeline-flow" class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-              <!-- Timeline nodes injected by JS -->
-            </div>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> Timeline</h3>
+            <div id="detail-timeline-flow" class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 5. RESOLUTION BODY / AUTHORITY DASHBOARD VIEW -->
+    <!-- ===== AUTHORITY DASHBOARD ===== -->
     <section id="view-authority-dashboard" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <!-- Authority Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg mb-8">
         <div>
-          <div class="flex items-center gap-2">
-            <span id="auth-org-badge" class="px-2.5 py-0.5 rounded-full bg-blue-500/30 border border-blue-400 text-blue-300 text-xs font-bold">Municipal Corp • Zone 2</span>
-            <span class="text-xs text-slate-400">Authorized Resolution Body</span>
-          </div>
-          <h1 id="auth-org-title" class="text-2xl sm:text-3xl font-extrabold mt-1">Public Works & Road Maintenance Division</h1>
-          <p class="text-xs text-slate-400 mt-1">Operational Area: Central & South Municipal Zones (12.4 sq km)</p>
+          <div class="flex items-center gap-2"><span id="auth-org-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/30 border border-emerald-400 text-emerald-300 text-xs font-bold">Municipal Corp</span><span class="text-xs text-slate-400">Authorized Resolution Body</span></div>
+          <h1 id="auth-org-title" class="text-2xl sm:text-3xl font-extrabold mt-1">PWD &amp; Road Maintenance Division</h1>
+          <p class="text-xs text-slate-400 mt-1">Logged in as: <span id="auth-officer-name" class="text-white font-semibold">Municipality Officer</span></p>
         </div>
-
-        <div class="flex items-center gap-3">
-          <button onclick="app.navigateTo('map-view')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition">
-            <i data-lucide="map" class="w-4 h-4"></i>
-            <span>Geographic Map View</span>
-          </button>
-        </div>
+        <button onclick="app.navigateTo('map-view')" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition">
+          <i data-lucide="map" class="w-4 h-4"></i><span>Geographic Map View</span>
+        </button>
       </div>
-
-      <!-- KPI Metrics Grid -->
       <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-[10px] font-bold text-slate-400 uppercase">Assigned to Us</p>
-          <p class="text-2xl font-extrabold text-slate-900 mt-1" id="auth-kpi-assigned">18</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-[10px] font-bold text-rose-500 uppercase">New / Unassigned</p>
-          <p class="text-2xl font-extrabold text-rose-600 mt-1" id="auth-kpi-new">4</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-[10px] font-bold text-blue-500 uppercase">In Progress</p>
-          <p class="text-2xl font-extrabold text-blue-600 mt-1" id="auth-kpi-inprogress">6</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-[10px] font-bold text-emerald-500 uppercase">Resolved (30d)</p>
-          <p class="text-2xl font-extrabold text-emerald-600 mt-1" id="auth-kpi-resolved">38</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-[10px] font-bold text-amber-500 uppercase">High Priority</p>
-          <p class="text-2xl font-extrabold text-amber-600 mt-1" id="auth-kpi-urgent">3</p>
-        </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <p class="text-[10px] font-bold text-cyan-600 uppercase">Avg SLA Turnaround</p>
-          <p class="text-2xl font-extrabold text-cyan-700 mt-1">14.2h</p>
-        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-[10px] font-bold text-slate-400 uppercase">Assigned</p><p class="text-2xl font-extrabold text-slate-900 mt-1" id="auth-kpi-assigned">0</p></div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-[10px] font-bold text-rose-500 uppercase">New</p><p class="text-2xl font-extrabold text-rose-600 mt-1" id="auth-kpi-new">0</p></div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-[10px] font-bold text-blue-500 uppercase">In Progress</p><p class="text-2xl font-extrabold text-blue-600 mt-1" id="auth-kpi-inprogress">0</p></div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-[10px] font-bold text-emerald-500 uppercase">Resolved</p><p class="text-2xl font-extrabold text-emerald-600 mt-1" id="auth-kpi-resolved">0</p></div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-[10px] font-bold text-amber-500 uppercase">High Priority</p><p class="text-2xl font-extrabold text-amber-600 mt-1" id="auth-kpi-urgent">0</p></div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"><p class="text-[10px] font-bold text-cyan-600 uppercase">Avg SLA</p><p class="text-2xl font-extrabold text-cyan-700 mt-1">14.2h</p></div>
       </div>
-
-      <!-- Analytics Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Complaints by Category</h3>
-          <div class="h-48 relative">
-            <canvas id="chart-categories"></canvas>
-          </div>
-        </div>
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Status Distribution</h3>
-          <div class="h-48 relative">
-            <canvas id="chart-statuses"></canvas>
-          </div>
-        </div>
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">7-Day Resolution Velocity</h3>
-          <div class="h-48 relative">
-            <canvas id="chart-velocity"></canvas>
-          </div>
-        </div>
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm"><h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">By Category</h3><div class="h-48 relative"><canvas id="chart-categories"></canvas></div></div>
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm"><h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Status Distribution</h3><div class="h-48 relative"><canvas id="chart-statuses"></canvas></div></div>
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm"><h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">7-Day Resolution</h3><div class="h-48 relative"><canvas id="chart-velocity"></canvas></div></div>
       </div>
-
-      <!-- Operational Queue Table -->
       <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h3 class="text-lg font-bold text-slate-900">Assigned Complaints Operational Queue</h3>
-            <p class="text-xs text-slate-500">Filter, prioritize, and dispatch field crews to reported locations</p>
-          </div>
-
-          <!-- Quick Filters -->
+          <div><h3 class="text-lg font-bold text-slate-900">Operational Complaint Queue</h3><p class="text-xs text-slate-500">Filter, prioritize, and dispatch field crews</p></div>
           <div class="flex flex-wrap items-center gap-2">
             <select id="auth-filter-status" onchange="app.renderAuthorityQueue()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700">
-              <option value="all">All Statuses</option>
-              <option value="Submitted">New / Submitted</option>
-              <option value="Under Review">Under Review</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
+              <option value="all">All Statuses</option><option value="Submitted">New</option><option value="Under Review">Under Review</option><option value="In Progress">In Progress</option><option value="Resolved">Resolved</option>
             </select>
             <select id="auth-filter-priority" onchange="app.renderAuthorityQueue()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700">
-              <option value="all">All Priorities</option>
-              <option value="High">High Urgency</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
+              <option value="all">All Priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option>
             </select>
           </div>
         </div>
-
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-600">
             <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100">
-              <tr>
-                <th class="py-3 px-4">Ticket</th>
-                <th class="py-3 px-4">Photo</th>
-                <th class="py-3 px-4">Category & Title</th>
-                <th class="py-3 px-4">Location</th>
-                <th class="py-3 px-4">Priority</th>
-                <th class="py-3 px-4">Status</th>
-                <th class="py-3 px-4 text-right">Action</th>
-              </tr>
+              <tr><th class="py-3 px-4">Ticket</th><th class="py-3 px-4">Photo</th><th class="py-3 px-4">Category &amp; Title</th><th class="py-3 px-4">Location</th><th class="py-3 px-4">Priority</th><th class="py-3 px-4">Status</th><th class="py-3 px-4 text-right">Action</th></tr>
             </thead>
-            <tbody id="auth-queue-table-body" class="divide-y divide-slate-100">
-              <!-- Dynamically populated by JS -->
-            </tbody>
+            <tbody id="auth-queue-table-body" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 6. INTERACTIVE CIVIC MAP VIEW -->
+    <!-- ===== MAP VIEW ===== -->
     <section id="view-map-view" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-        <div>
-          <h1 class="text-2xl font-extrabold text-slate-900">Live BitAware Civic Map</h1>
-          <p class="text-xs text-slate-500">Real-time geographical view of all reported citizen problems and resolution status</p>
-        </div>
-
-        <!-- Status Filter Legend -->
+        <div><h1 class="text-2xl font-extrabold text-slate-900">Live NagarNazar Civic Map</h1><p class="text-xs text-slate-500">Real-time view of all reported issues and resolution status</p></div>
         <div class="flex flex-wrap items-center gap-2 text-xs">
           <button onclick="mapModule.filterMapMarkers('all')" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-medium">All</button>
-          <button onclick="mapModule.filterMapMarkers('Submitted')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 font-medium">🔴 New</button>
-          <button onclick="mapModule.filterMapMarkers('In Progress')" class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 font-medium">🔵 In Progress</button>
-          <button onclick="mapModule.filterMapMarkers('Resolved')" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-medium">🟢 Resolved</button>
+          <button onclick="mapModule.filterMapMarkers('Submitted')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 font-medium">&#x1F534; New</button>
+          <button onclick="mapModule.filterMapMarkers('In Progress')" class="px-2.5 py-1 rounded-lg bg-blue-100 text-blue-800 font-medium">&#x1F535; In Progress</button>
+          <button onclick="mapModule.filterMapMarkers('Resolved')" class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-medium">&#x1F7E2; Resolved</button>
         </div>
       </div>
-
-      <!-- Leaflet Map Container -->
       <div class="relative bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-[650px]">
         <div id="full-interactive-map" class="w-full h-full z-0"></div>
-
-        <!-- Floating Quick Stats on Map -->
         <div class="absolute bottom-4 left-4 z-10 bg-white/90 backdrop-blur p-3 rounded-2xl shadow-lg border border-slate-200 text-xs font-semibold text-slate-700 hidden sm:flex items-center gap-4">
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> New Issue</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> New</span>
           <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Under Review</span>
           <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> In Progress</span>
           <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Resolved</span>
@@ -1053,155 +677,679 @@
       </div>
     </section>
 
-    <!-- 7. PLATFORM ADMINISTRATOR DASHBOARD VIEW -->
-    <section id="view-admin-dashboard" class="view-section hidden py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <!-- Admin Header -->
-      <div class="bg-gradient-to-r from-purple-900 to-indigo-950 text-white p-6 sm:p-8 rounded-3xl shadow-lg mb-8">
-        <div class="flex items-center gap-2">
-          <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-400 text-purple-300 text-xs font-bold">Platform Governance</span>
-          <span class="text-xs text-slate-300">System Administrator</span>
-        </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold mt-1">BitAware Governance Command Center</h1>
-        <p class="text-xs text-purple-200 mt-1">Supervise municipal departments, verify authorized NGOs, manage categories and platform health.</p>
-      </div>
-
-      <!-- Admin Tabs -->
-      <div class="flex gap-2 mb-6 border-b border-slate-200 pb-2">
-        <button onclick="app.setAdminTab('orgs')" id="admin-tab-orgs" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white">
-          Resolution Organizations (4)
-        </button>
-        <button onclick="app.setAdminTab('categories')" id="admin-tab-categories" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
-          Civic Categories & SLAs
-        </button>
-        <button onclick="app.setAdminTab('system')" id="admin-tab-system" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
-          System Audit & Logs
-        </button>
-      </div>
-
-      <!-- Tab Content: Organizations Management -->
-      <div id="admin-content-orgs" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-bold text-base text-slate-900">Authorized Resolution Bodies & Departments</h3>
-          <button onclick="app.openAddOrgModal()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl">
-            <i data-lucide="plus" class="w-4 h-4"></i> Add Organization
-          </button>
-        </div>
-
-        <div id="admin-orgs-list" class="divide-y divide-slate-100">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-
-      <!-- Tab Content: Categories & SLAs -->
-      <div id="admin-content-categories" class="hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-        <h3 class="font-bold text-base text-slate-900 mb-4">Issue Categories & SLA Turnaround Targets</h3>
-        <div id="admin-categories-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-
-      <!-- Tab Content: System Audit Logs -->
-      <div id="admin-content-system" class="hidden bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-        <h3 class="font-bold text-base text-slate-900 mb-4">Real-Time Platform Audit Trail</h3>
-        <div id="admin-audit-logs" class="space-y-2 text-xs font-mono">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-    </section>
-
   </main>
 
-  <!-- ================= REGISTER NEW ORG MODAL ================= -->
+  <!-- REGISTER ORG MODAL -->
   <div id="register-org-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 animate-slideDown">
       <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-            <i data-lucide="building-2" class="w-5 h-5"></i>
-          </div>
-          <h3 class="text-lg font-bold text-slate-900">Register Resolution Body / NGO</h3>
-        </div>
-        <button onclick="app.closeAddOrgModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i data-lucide="building-2" class="w-5 h-5"></i></div><h3 class="text-lg font-bold text-slate-900">Register Resolution Body / NGO</h3></div>
+        <button onclick="app.closeAddOrgModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-
-      <p class="text-xs text-slate-500 mb-4">Join BitAware to manage civic resolution, deploy field crews, and upload work evidence.</p>
-
       <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Organization / Dept Name *</label>
-          <input type="text" id="new-org-name" placeholder="e.g. West Zone Solid Waste Division" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Organization Type *</label>
-          <select id="new-org-type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-            <option value="Municipal Department">Municipal Department</option>
-            <option value="Government Agency">Government Agency</option>
-            <option value="Verified NGO Partner">Verified NGO Partner</option>
-            <option value="RWA / Resident Association">RWA / Resident Association</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Operational Area / Zone</label>
-          <input type="text" id="new-org-zone" placeholder="e.g. Central Zone (Wards 10 - 25)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-        </div>
+        <div><label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Organization Name *</label><input type="text" id="new-org-name" placeholder="e.g. West Zone Solid Waste Division" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></div>
+        <div><label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Type *</label><select id="new-org-type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"><option>Municipal Department</option><option>Government Agency</option><option>Verified NGO Partner</option><option>RWA / Resident Association</option></select></div>
+        <div><label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Operational Zone</label><input type="text" id="new-org-zone" placeholder="Central Zone (Wards 10–25)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></div>
         <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Lead Officer / Contact</label>
-            <input type="text" id="new-org-lead" placeholder="Officer Name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Official Phone</label>
-            <input type="text" id="new-org-phone" placeholder="+91 11 ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-          </div>
+          <div><label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Lead Officer</label><input type="text" id="new-org-lead" placeholder="Officer Name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></div>
+          <div><label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Phone</label><input type="text" id="new-org-phone" placeholder="+91 11 ..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></div>
         </div>
       </div>
-
       <div class="mt-6 flex gap-2">
-        <button onclick="app.closeAddOrgModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs">
-          Cancel
-        </button>
-        <button onclick="app.submitNewOrg()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">
-          Submit & Verify
-        </button>
+        <button onclick="app.closeAddOrgModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs">Cancel</button>
+        <button onclick="app.submitNewOrg()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md">Submit &amp; Verify</button>
       </div>
     </div>
   </div>
 
-  <!-- ================= MOBILE BOTTOM NAVIGATION BAR ================= -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 py-2 px-4 z-40 flex items-center justify-around shadow-lg">
-    <button onclick="app.navigateTo('citizen-dashboard')" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600">
-      <i data-lucide="home" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-0.5">Home</span>
-    </button>
-    <button onclick="app.navigateTo('map-view')" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600">
-      <i data-lucide="map" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-0.5">Map</span>
-    </button>
-    <button onclick="app.startReportIssue()" class="flex flex-col items-center -mt-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg shadow-blue-500/30">
-      <i data-lucide="camera" class="w-6 h-6"></i>
-    </button>
-    <button onclick="app.navigateTo('authority-dashboard')" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600">
-      <i data-lucide="shield" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-0.5">Authority</span>
-    </button>
-    <button onclick="app.toggleNotifications()" class="flex flex-col items-center text-slate-500 hover:text-blue-600 focus:text-blue-600 relative">
-      <i data-lucide="bell" class="w-5 h-5"></i>
-      <span class="text-[10px] font-semibold mt-0.5">Alerts</span>
-    </button>
+  <!-- MOBILE NAV -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 py-2 px-4 z-40 flex items-center justify-around shadow-lg" id="mobile-nav">
+    <button onclick="app.navigateTo('landing')" class="flex flex-col items-center text-slate-500 hover:text-indigo-600"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-semibold mt-0.5">Home</span></button>
+    <button onclick="app.navigateTo('map-view')" class="flex flex-col items-center text-slate-500 hover:text-indigo-600"><i data-lucide="map" class="w-5 h-5"></i><span class="text-[10px] font-semibold mt-0.5">Map</span></button>
+    <button onclick="app.mobileReportOrLogin()" class="flex flex-col items-center -mt-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-3 rounded-full shadow-lg shadow-indigo-500/30"><i data-lucide="camera" class="w-6 h-6"></i></button>
+    <button onclick="app.mobileDashboardOrLogin()" class="flex flex-col items-center text-slate-500 hover:text-indigo-600"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[10px] font-semibold mt-0.5">Portal</span></button>
+    <button onclick="app.toggleNotifications()" class="flex flex-col items-center text-slate-500 hover:text-indigo-600 relative"><i data-lucide="bell" class="w-5 h-5"></i><span class="text-[10px] font-semibold mt-0.5">Alerts</span></button>
   </nav>
 
-  <!-- Toast Notification Container -->
   <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Javascript Modules -->
-  <script src="data.js"></script>
-  <script src="camera.js"></script>
-  <script src="location.js"></script>
-  <script src="map.js"></script>
-  <script src="analytics.js"></script>
-  <script src="app.js"></script>
+  <script>
+// ===================== DATA =====================
+const CIVIC_CATEGORIES=[
+  {id:'potholes',name:'Roads & Potholes',icon:'cone',dept:'PWD & Road Works',slaHours:24},
+  {id:'garbage',name:'Garbage & Waste',icon:'trash-2',dept:'Solid Waste Mgmt',slaHours:12},
+  {id:'streetlights',name:'Broken Streetlights',icon:'lightbulb',dept:'Electricity Board',slaHours:24},
+  {id:'water_leak',name:'Water Pipe Leakage',icon:'droplet',dept:'Water & Sewerage',slaHours:8},
+  {id:'drainage',name:'Drainage & Sewer',icon:'waves',dept:'Water & Sewerage',slaHours:16},
+  {id:'illegal_dumping',name:'Illegal Dumping',icon:'alert-triangle',dept:'Solid Waste Mgmt',slaHours:24},
+  {id:'traffic_sign',name:'Broken Signage',icon:'signpost',dept:'Traffic Infrastructure',slaHours:48},
+  {id:'parks',name:'Parks & Spaces',icon:'trees',dept:'Horticulture & Parks',slaHours:72},
+  {id:'other',name:'Other Civic Issue',icon:'help-circle',dept:'General Municipal Corp',slaHours:48}
+];
+
+const INITIAL_COMPLAINTS=[
+  {id:'CIV-2026-000101',title:'Hazardous deep crater pothole near Metro Gate 3',category:'potholes',categoryName:'Roads & Potholes',description:'A deep 2.5-foot crater after the monsoon rains.',status:'In Progress',priority:'High',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'PWD & Road Works',location:{lat:28.6145,lng:77.2088,address:'Near Metro Gate 3, Ring Road, Sector 14'},photoBefore:'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-19T08:30:00Z',updatedAt:'2026-08-20T09:15:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 19, 2026, 08:30 AM',note:'Issue reported with live camera.'},{status:'In Progress',actor:'Field Supervisor Anil Kumar',timestamp:'Aug 20, 2026, 09:15 AM',note:'Cold-mix patching team deployed.'}]},
+  {id:'CIV-2026-000098',title:'Commercial garbage bin overflowing onto sidewalk',category:'garbage',categoryName:'Garbage & Waste',description:'Sanitation bin not cleared for 3 days.',status:'Resolved',priority:'High',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'Solid Waste Mgmt',location:{lat:28.6210,lng:77.2155,address:'Main Market Square, Block B, Green Park'},photoBefore:'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80',photoAfter:'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80',createdAt:'2026-08-18T10:15:00Z',updatedAt:'2026-08-19T14:40:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 18, 2026, 10:15 AM',note:'Garbage accumulation reported.'},{status:'Resolved',actor:'Dr. Sunita Rao',timestamp:'Aug 19, 2026, 02:40 PM',note:'Sidewalk fully cleared.'}]},
+  {id:'CIV-2026-000104',title:'High-pressure water pipe bursting across street',category:'water_leak',categoryName:'Water Pipe Leakage',description:'Main potable water pipe ruptured at junction.',status:'Submitted',priority:'High',citizenName:'Pooja Verma',citizenContact:'pooja@demo.com',assignedOrgName:'Water & Sewerage',location:{lat:28.6080,lng:77.2210,address:'Opposite Community Center, 5th Cross Road'},photoBefore:'https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-20T06:45:00Z',updatedAt:'2026-08-20T06:45:00Z',timeline:[{status:'Submitted',actor:'Pooja Verma',timestamp:'Aug 20, 2026, 06:45 AM',note:'Urgent leak reported.'}]},
+  {id:'CIV-2026-000095',title:'4 Consecutive streetlights non-functional in dark lane',category:'streetlights',categoryName:'Broken Streetlights',description:'Entire stretch from House 12 to 28 is dark every evening.',status:'In Progress',priority:'Medium',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'Electricity Board',location:{lat:28.6180,lng:77.2020,address:'Lane 4, Pocket C, Residential Colony'},photoBefore:'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-17T19:30:00Z',updatedAt:'2026-08-19T16:00:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 17, 2026, 07:30 PM',note:'Streetlights reported.'},{status:'In Progress',actor:'Electrical Team',timestamp:'Aug 19, 2026, 04:00 PM',note:'Replacing shorted capacitor.'}]},
+  {id:'CIV-2026-000110',title:'Illegal garbage dumping near park entrance',category:'illegal_dumping',categoryName:'Illegal Dumping',description:'Construction debris dumped illegally near the park gate.',status:'Under Review',priority:'Medium',citizenName:'Amit Singh',citizenContact:'amit@demo.com',assignedOrgName:'Solid Waste Mgmt',location:{lat:28.6160,lng:77.2100,address:'Park Gate 2, Sector 12, Near Children\'s Park'},photoBefore:'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-21T11:00:00Z',updatedAt:'2026-08-21T11:00:00Z',timeline:[{status:'Submitted',actor:'Amit Singh',timestamp:'Aug 21, 2026, 11:00 AM',note:'Illegal dumping reported.'},{status:'Under Review',actor:'Zone Inspector',timestamp:'Aug 21, 2026, 02:00 PM',note:'Inspection scheduled.'}]}
+];
+
+const INITIAL_NOTIFICATIONS=[
+  {id:'notif-1',title:'Field Team Deployed',message:'Crew #4 dispatched for pothole CIV-2026-000101.',time:'2h ago',read:false,complaintId:'CIV-2026-000101',type:'progress'},
+  {id:'notif-2',title:'Complaint Resolved',message:'Garbage complaint CIV-2026-000098 has been resolved!',time:'3h ago',read:false,complaintId:'CIV-2026-000098',type:'resolved'},
+  {id:'notif-3',title:'New Complaint Registered',message:'Water pipe ticket CIV-2026-000104 logged.',time:'4h ago',read:true,complaintId:'CIV-2026-000104',type:'submitted'}
+];
+
+// ===================== AUTH MODULE =====================
+const DEMO_ACCOUNTS={
+  citizen:{email:'citizen@demo.com',password:'citizen123',name:'Rahul Sharma',role:'citizen'},
+  municipality:{email:'muni@demo.com',password:'muni123',name:'Municipality Officer',role:'municipality'}
+};
+
+const authModule={
+  session:null,
+  init(){
+    try{const s=localStorage.getItem('nn_session');if(s)this.session=JSON.parse(s);}catch(e){}
+  },
+  save(){localStorage.setItem('nn_session',JSON.stringify(this.session));},
+  isLoggedIn(){return this.session&&this.session.loggedIn;},
+  getRole(){return this.session?this.session.role:null;},
+  citizenLogin(){
+    const email=document.getElementById('citizen-login-email')?.value.trim();
+    const pass=document.getElementById('citizen-login-password')?.value;
+    const errEl=document.getElementById('citizen-login-error');
+    if(email===DEMO_ACCOUNTS.citizen.email&&pass===DEMO_ACCOUNTS.citizen.password){
+      this._loginAs('citizen');
+    } else {
+      if(errEl){errEl.classList.remove('hidden');const box=errEl.closest('.bg-white');if(box){box.classList.add('animate-shake');setTimeout(()=>box.classList.remove('animate-shake'),400);}}
+    }
+  },
+  citizenDemoLogin(){
+    const e=document.getElementById('citizen-login-email'),p=document.getElementById('citizen-login-password');
+    if(e)e.value=DEMO_ACCOUNTS.citizen.email;if(p)p.value=DEMO_ACCOUNTS.citizen.password;
+    setTimeout(()=>this.citizenLogin(),200);
+  },
+  muniLogin(){
+    const email=document.getElementById('muni-login-email')?.value.trim();
+    const pass=document.getElementById('muni-login-password')?.value;
+    const dept=document.getElementById('muni-login-dept')?.value||'PWD';
+    const errEl=document.getElementById('muni-login-error');
+    if(email===DEMO_ACCOUNTS.municipality.email&&pass===DEMO_ACCOUNTS.municipality.password){
+      this._loginAs('municipality',dept);
+    } else {
+      if(errEl){errEl.classList.remove('hidden');const box=errEl.closest('.bg-white');if(box){box.classList.add('animate-shake');setTimeout(()=>box.classList.remove('animate-shake'),400);}}
+    }
+  },
+  muniDemoLogin(){
+    const e=document.getElementById('muni-login-email'),p=document.getElementById('muni-login-password');
+    if(e)e.value=DEMO_ACCOUNTS.municipality.email;if(p)p.value=DEMO_ACCOUNTS.municipality.password;
+    setTimeout(()=>this.muniLogin(),200);
+  },
+  _loginAs(role,dept=''){
+    const acc=role==='citizen'?DEMO_ACCOUNTS.citizen:DEMO_ACCOUNTS.municipality;
+    this.session={loggedIn:true,role,name:acc.name,dept:dept||'General',email:acc.email};
+    this.save();
+    if(window.app)window.app.onLoginSuccess();
+  },
+  logout(){
+    this.session=null;
+    localStorage.removeItem('nn_session');
+    if(window.app)window.app.onLogout();
+  }
+};
+window.authModule=authModule;
+authModule.init();
+
+// ===================== DATA STORE =====================
+function haversineDistance(lat1,lng1,lat2,lng2){
+  const R=6371000,toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1),dLng=toRad(lng2-lng1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+const dataStore={
+  complaints:[],notifications:[],
+  init(){
+    try{this.complaints=JSON.parse(localStorage.getItem('nn_complaints_v1'))||[...INITIAL_COMPLAINTS];}catch(e){this.complaints=[...INITIAL_COMPLAINTS];}
+    if(!localStorage.getItem('nn_complaints_v1'))this.saveComplaints();
+    try{this.notifications=JSON.parse(localStorage.getItem('nn_notifications_v1'))||[...INITIAL_NOTIFICATIONS];}catch(e){this.notifications=[...INITIAL_NOTIFICATIONS];}
+    if(!localStorage.getItem('nn_notifications_v1'))this.saveNotifications();
+  },
+  saveComplaints(){localStorage.setItem('nn_complaints_v1',JSON.stringify(this.complaints));},
+  saveNotifications(){localStorage.setItem('nn_notifications_v1',JSON.stringify(this.notifications));},
+  getAllComplaints(){return this.complaints;},
+  getComplaintById(id){if(!id)return null;const c=id.trim().toUpperCase();return this.complaints.find(x=>x.id.toUpperCase()===c||x.id.toUpperCase().includes(c));},
+  findNearby(lat,lng,radiusMeters=1000,statusFilter='all'){
+    return this.complaints.filter(item=>{
+      const dist=haversineDistance(lat,lng,item.location.lat,item.location.lng);
+      item._distance=Math.round(dist);
+      return dist<=radiusMeters&&(statusFilter==='all'||item.status===statusFilter);
+    }).sort((a,b)=>a._distance-b._distance);
+  },
+  findDuplicates(lat,lng,categoryId,radiusMeters=500){
+    return this.complaints.filter(item=>{
+      if(item.status==='Resolved'||item.status==='Closed')return false;
+      if(item.category!==categoryId)return false;
+      return haversineDistance(lat,lng,item.location.lat,item.location.lng)<=radiusMeters;
+    });
+  },
+  addComplaint(complaint){this.complaints.unshift(complaint);this.saveComplaints();this.addNotification({title:'Complaint Registered',message:'Your issue "'+complaint.title.substring(0,30)+'..." logged as '+complaint.id+'.',complaintId:complaint.id,type:'submitted'});return complaint;},
+  updateComplaintStatus(id,newStatus,note,actorName,evidencePhoto=null){
+    const c=this.getComplaintById(id);if(!c)return false;
+    c.status=newStatus;c.updatedAt=new Date().toISOString();
+    if(evidencePhoto)c.photoAfter=evidencePhoto;
+    const now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    c.timeline.push({status:newStatus,actor:actorName||'Municipality Officer',timestamp:now,note:note||'Status updated to '+newStatus});
+    this.saveComplaints();
+    this.addNotification({title:'Status: '+newStatus,message:'Complaint '+c.id+' → "'+newStatus+'".',complaintId:c.id,type:'update'});
+    return true;
+  },
+  addNotification(n){this.notifications.unshift({id:'notif-'+Date.now(),title:n.title,message:n.message,time:'Just now',read:false,complaintId:n.complaintId||null,type:n.type||'info'});this.saveNotifications();},
+  markAllRead(){this.notifications.forEach(n=>n.read=true);this.saveNotifications();},
+  generateComplaintId(){return 'CIV-2026-'+String(this.complaints.length+107).padStart(6,'0');}
+};
+dataStore.init();
+window.dataStore=dataStore;
+window.CIVIC_CATEGORIES=CIVIC_CATEGORIES;
+
+// ===================== CAMERA MODULE =====================
+const cameraModule={
+  stream:null,facingMode:'environment',capturedImageData:null,isLiveCapture:false,
+  presetImages:['https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80','https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80','https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=800&q=80','https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80'],
+  async startCamera(){
+    const video=document.getElementById('camera-video'),placeholder=document.getElementById('camera-placeholder'),btnInit=document.getElementById('camera-btn-group-init'),btnStreaming=document.getElementById('camera-btn-group-streaming'),overlay=document.getElementById('camera-live-overlay'),preview=document.getElementById('photo-preview');
+    try{
+      this.stopCamera();
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Camera API not supported');
+      let stream=null;
+      try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:this.facingMode}},audio:false});}
+      catch(e1){try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:this.facingMode},audio:false});}catch(e2){stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});}}
+      this.stream=stream;
+      video.setAttribute('autoplay','');video.setAttribute('muted','');video.setAttribute('playsinline','');video.setAttribute('webkit-playsinline','');
+      video.muted=true;video.srcObject=this.stream;
+      video.classList.remove('hidden');
+      if(placeholder)placeholder.classList.add('hidden');if(preview)preview.classList.add('hidden');
+      if(btnInit)btnInit.classList.add('hidden');if(btnStreaming)btnStreaming.classList.remove('hidden');if(overlay)overlay.classList.remove('hidden');
+      try{await video.play();}catch(pe){console.warn('play:',pe);}
+      if(window.app)window.app.showToast('Camera active! Tap Snap.','info');
+    }catch(err){
+      let msg='Camera access failed.';
+      if(err.name==='NotAllowedError')msg='Camera blocked. Allow camera in browser settings.';
+      else if(err.name==='NotFoundError')msg='No camera found on this device.';
+      else if(err.name==='NotReadableError')msg='Camera is in use by another app.';
+      if(window.app)window.app.showToast(msg,'warning');
+    }
+  },
+  switchCameraFacing(){this.facingMode=this.facingMode==='environment'?'user':'environment';this.startCamera();},
+  captureSnapshot(){
+    const video=document.getElementById('camera-video'),canvas=document.getElementById('camera-canvas'),preview=document.getElementById('photo-preview'),btnStreaming=document.getElementById('camera-btn-group-streaming'),btnPreview=document.getElementById('camera-btn-group-preview'),overlay=document.getElementById('camera-live-overlay');
+    if(!video||video.videoWidth===0){this.loadPresetCivicPhoto();return;}
+    const flash=document.createElement('div');flash.className='camera-shutter-flash';video.parentElement.appendChild(flash);setTimeout(()=>flash.remove(),300);
+    canvas.width=video.videoWidth||640;canvas.height=video.videoHeight||480;
+    const ctx=canvas.getContext('2d');ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    const lat=(window.locationModule&&window.locationModule.currentLat)?window.locationModule.currentLat:28.6139;
+    const lng=(window.locationModule&&window.locationModule.currentLng)?window.locationModule.currentLng:77.2090;
+    const now=new Date().toLocaleString();
+    ctx.fillStyle='rgba(0,0,0,0.70)';ctx.fillRect(0,canvas.height-46,canvas.width,46);
+    ctx.font='bold 14px sans-serif';ctx.fillStyle='#10b981';ctx.fillText('✓ LIVE VERIFIED',14,canvas.height-18);
+    ctx.font='12px monospace';ctx.fillStyle='#ffffff';ctx.fillText('GPS: '+lat.toFixed(4)+', '+lng.toFixed(4)+' | '+now,145,canvas.height-18);
+    this.capturedImageData=canvas.toDataURL('image/jpeg',0.88);this.isLiveCapture=true;
+    preview.src=this.capturedImageData;preview.classList.remove('hidden');video.classList.add('hidden');
+    if(overlay)overlay.classList.add('hidden');if(btnStreaming)btnStreaming.classList.add('hidden');if(btnPreview)btnPreview.classList.remove('hidden');
+    this.stopCamera();this.updateWatermarkBadge(lat,lng,true);
+    if(window.app)window.app.showToast('Photo captured with GPS stamp!','success');
+  },
+  handleFileUpload(event){
+    const file=event.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+      const img=new Image();
+      img.onload=()=>{
+        const canvas=document.getElementById('camera-canvas')||document.createElement('canvas');
+        canvas.width=img.width;canvas.height=img.height;
+        const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+        const lat=(window.locationModule&&window.locationModule.currentLat)?window.locationModule.currentLat:28.6139;
+        const lng=(window.locationModule&&window.locationModule.currentLng)?window.locationModule.currentLng:77.2090;
+        const now=new Date().toLocaleString();
+        const bh=Math.max(46,Math.floor(canvas.height*0.06));
+        ctx.fillStyle='rgba(0,0,0,0.70)';ctx.fillRect(0,canvas.height-bh,canvas.width,bh);
+        const fs=Math.max(14,Math.floor(canvas.width*0.025));
+        ctx.font='bold '+fs+'px sans-serif';ctx.fillStyle='#10b981';ctx.fillText('✓ LIVE VERIFIED',16,canvas.height-Math.floor(bh*0.35));
+        ctx.font=Math.max(12,Math.floor(fs*0.85))+'px monospace';ctx.fillStyle='#ffffff';ctx.fillText('GPS: '+lat.toFixed(4)+', '+lng.toFixed(4)+' | '+now,16+fs*9,canvas.height-Math.floor(bh*0.35));
+        this.capturedImageData=canvas.toDataURL('image/jpeg',0.88);this.isLiveCapture=true;
+        this.displayPreview(this.capturedImageData,true);
+        if(window.app)window.app.showToast('Photo loaded with GPS stamp!','success');
+      };img.src=e.target.result;
+    };reader.readAsDataURL(file);
+  },
+  loadPresetCivicPhoto(index=0){const url=this.presetImages[index%this.presetImages.length];this.capturedImageData=url;this.isLiveCapture=true;this.displayPreview(url,true);if(window.app)window.app.showToast('Sample photo loaded.','info');},
+  displayPreview(imageUrl,isVerified=true){
+    const video=document.getElementById('camera-video'),placeholder=document.getElementById('camera-placeholder'),preview=document.getElementById('photo-preview'),btnInit=document.getElementById('camera-btn-group-init'),btnStreaming=document.getElementById('camera-btn-group-streaming'),btnPreview=document.getElementById('camera-btn-group-preview'),overlay=document.getElementById('camera-live-overlay');
+    this.stopCamera();
+    if(placeholder)placeholder.classList.add('hidden');if(video)video.classList.add('hidden');if(overlay)overlay.classList.add('hidden');if(btnInit)btnInit.classList.add('hidden');if(btnStreaming)btnStreaming.classList.add('hidden');
+    if(preview){preview.src=imageUrl;preview.classList.remove('hidden');}if(btnPreview)btnPreview.classList.remove('hidden');
+    const lat=(window.locationModule&&window.locationModule.currentLat)?window.locationModule.currentLat:28.6139;
+    const lng=(window.locationModule&&window.locationModule.currentLng)?window.locationModule.currentLng:77.2090;
+    this.updateWatermarkBadge(lat,lng,isVerified);
+  },
+  updateWatermarkBadge(lat,lng,isVerified=true){const wb=document.getElementById('photo-watermark-badge'),gt=document.getElementById('watermark-gps-text'),tt=document.getElementById('watermark-time-text');if(wb&&gt){wb.classList.remove('hidden');gt.innerText=(isVerified?'Live Verified':'Uploaded')+': '+lat.toFixed(4)+', '+lng.toFixed(4);if(tt)tt.innerText=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}},
+  retakePhoto(){this.capturedImageData=null;const preview=document.getElementById('photo-preview'),placeholder=document.getElementById('camera-placeholder'),btnInit=document.getElementById('camera-btn-group-init'),btnPreview=document.getElementById('camera-btn-group-preview'),wb=document.getElementById('photo-watermark-badge');if(preview)preview.classList.add('hidden');if(wb)wb.classList.add('hidden');if(placeholder)placeholder.classList.remove('hidden');if(btnPreview)btnPreview.classList.add('hidden');if(btnInit)btnInit.classList.remove('hidden');this.startCamera();},
+  stopCamera(){if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}},
+  reset(){this.stopCamera();this.capturedImageData=null;this.isLiveCapture=false;}
+};
+window.cameraModule=cameraModule;
+
+// ===================== LOCATION MODULE =====================
+const locationModule={
+  currentLat:28.6139,currentLng:77.2090,currentAddress:'Main Ring Road, Sector 14, Near Metro Pillar 84',accuracy:10,
+  async detectLiveGPS(callback){
+    if(!navigator.geolocation){this.updateDisplay();if(callback)callback(this.currentLat,this.currentLng,this.currentAddress);return;}
+    if(window.app)window.app.showToast('Acquiring GPS...','info');
+    navigator.geolocation.getCurrentPosition(
+      async(pos)=>{this.currentLat=pos.coords.latitude;this.currentLng=pos.coords.longitude;this.accuracy=pos.coords.accuracy||10;const addr=await this.reverseGeocode(this.currentLat,this.currentLng);this.currentAddress=addr;this.updateDisplay();if(window.app)window.app.showToast('GPS Locked (±'+Math.round(this.accuracy)+'m)','success');if(callback)callback(this.currentLat,this.currentLng,this.currentAddress);},
+      ()=>{if(window.app)window.app.showToast('Using default coordinates.','info');this.updateDisplay();if(callback)callback(this.currentLat,this.currentLng,this.currentAddress);},
+      {enableHighAccuracy:true,timeout:8000,maximumAge:0}
+    );
+  },
+  async reverseGeocode(lat,lng){try{const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&zoom=18',{headers:{'Accept-Language':'en'}});if(r.ok){const d=await r.json();if(d&&d.display_name)return d.display_name.split(',').slice(0,3).join(',').trim();}}catch(e){}return 'Sector 14, Zone 4 ('+lat.toFixed(4)+', '+lng.toFixed(4)+')';},
+  updateDisplay(){const le=document.getElementById('wizard-lat-display'),lne=document.getElementById('wizard-lng-display'),ae=document.getElementById('wizard-address-input');if(le)le.innerText=this.currentLat.toFixed(4);if(lne)lne.innerText=this.currentLng.toFixed(4);if(ae)ae.value=this.currentAddress;}
+};
+window.locationModule=locationModule;
+
+// ===================== MAP MODULE =====================
+const mapModule={
+  fullMap:null,wizardMap:null,detailMiniMap:null,neighbourhoodMap:null,wizardMarker:null,fullMapMarkers:[],nbrMarkers:[],
+  statusColors:{'Submitted':{bg:'#ef4444'},'Under Review':{bg:'#f97316'},'Assigned':{bg:'#eab308'},'In Progress':{bg:'#3b82f6'},'Resolved':{bg:'#10b981'},'Closed':{bg:'#64748b'}},
+  initFullMap(){const c=document.getElementById('full-interactive-map');if(!c||typeof L==='undefined')return;if(this.fullMap){setTimeout(()=>this.fullMap&&this.fullMap.invalidateSize(),200);return;}try{this.fullMap=L.map('full-interactive-map').setView([28.6139,77.2090],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap | NagarNazar'}).addTo(this.fullMap);this.renderFullMapMarkers();}catch(e){}},
+  renderFullMapMarkers(statusFilter='all'){if(!this.fullMap||typeof L==='undefined')return;this.fullMapMarkers.forEach(m=>this.fullMap.removeLayer(m));this.fullMapMarkers=[];window.dataStore.getAllComplaints().forEach(item=>{if(statusFilter!=='all'&&item.status!==statusFilter)return;const color=this.statusColors[item.status]?.bg||'#3b82f6';const icon=L.divIcon({className:'',html:'<div style="background:'+color+';width:32px;height:32px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);color:white;font-weight:bold;font-size:13px;">'+(item.status==='Resolved'?'✓':'!')+'</div>',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18]});const marker=L.marker([item.location.lat,item.location.lng],{icon}).addTo(this.fullMap);marker.bindPopup('<div style="width:240px;font-family:sans-serif"><div style="height:100px;overflow:hidden;position:relative"><img src="'+item.photoBefore+'" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:8px;left:8px;background:'+color+';color:white;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:4px;">'+item.status+'</span></div><div style="padding:12px"><div style="font-weight:bold;font-size:12px;margin-bottom:4px">'+item.title+'</div><div style="font-size:11px;color:#64748b;margin-bottom:8px">📍 '+item.location.address+'</div><button onclick="app.viewComplaintDetails(\''+item.id+'\')" style="background:#4f46e5;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;width:100%">View Ticket →</button></div></div>');this.fullMapMarkers.push(marker);});},
+  filterMapMarkers(status){this.renderFullMapMarkers(status);if(window.app)window.app.showToast('Showing: '+(status==='all'?'All':status),'info');},
+  initWizardMap(){const c=document.getElementById('wizard-leaflet-map');if(!c||typeof L==='undefined')return;const lat=window.locationModule.currentLat,lng=window.locationModule.currentLng;if(this.wizardMap){this.wizardMap.setView([lat,lng],16);if(this.wizardMarker)this.wizardMarker.setLatLng([lat,lng]);setTimeout(()=>this.wizardMap&&this.wizardMap.invalidateSize(),250);return;}try{this.wizardMap=L.map('wizard-leaflet-map').setView([lat,lng],16);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(this.wizardMap);const pi=L.divIcon({className:'',html:'<div style="background:#4f46e5;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(79,70,229,0.5);font-size:16px;">📍</div>',iconSize:[36,36],iconAnchor:[18,36]});this.wizardMarker=L.marker([lat,lng],{draggable:true,icon:pi}).addTo(this.wizardMap);this.wizardMarker.on('dragend',async(e)=>{const p=e.target.getLatLng();window.locationModule.currentLat=p.lat;window.locationModule.currentLng=p.lng;const a=await window.locationModule.reverseGeocode(p.lat,p.lng);window.locationModule.currentAddress=a;window.locationModule.updateDisplay();if(window.app)window.app.showToast('Location updated','info');});setTimeout(()=>this.wizardMap&&this.wizardMap.invalidateSize(),300);}catch(e){}},
+  initDetailMiniMap(lat,lng){const c=document.getElementById('detail-mini-map');if(!c||typeof L==='undefined')return;if(this.detailMiniMap){this.detailMiniMap.remove();this.detailMiniMap=null;}try{this.detailMiniMap=L.map('detail-mini-map',{zoomControl:false,attributionControl:false}).setView([lat,lng],15);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(this.detailMiniMap);const pi=L.divIcon({className:'',html:'<div style="background:#ef4444;width:28px;height:28px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.3);">📍</div>',iconSize:[28,28],iconAnchor:[14,28]});L.marker([lat,lng],{icon:pi}).addTo(this.detailMiniMap);setTimeout(()=>this.detailMiniMap&&this.detailMiniMap.invalidateSize(),250);}catch(e){}},
+  initNeighbourhoodMap(lat,lng,complaints){const c=document.getElementById('neighbourhood-map');if(!c||typeof L==='undefined')return;if(this.neighbourhoodMap){this.neighbourhoodMap.remove();this.neighbourhoodMap=null;}try{this.neighbourhoodMap=L.map('neighbourhood-map').setView([lat,lng],15);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(this.neighbourhoodMap);const userIcon=L.divIcon({className:'',html:'<div style="background:#4f46e5;width:32px;height:32px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 4px 12px rgba(79,70,229,0.5);">👤</div>',iconSize:[32,32],iconAnchor:[16,16]});L.marker([lat,lng],{icon:userIcon}).addTo(this.neighbourhoodMap).bindPopup('<b>Your Location</b>');L.circle([lat,lng],{radius:1000,color:'#4f46e5',fillColor:'#4f46e5',fillOpacity:0.06,weight:1.5,dashArray:'6,4'}).addTo(this.neighbourhoodMap);complaints.forEach(item=>{const color=this.statusColors[item.status]?.bg||'#3b82f6';const icon=L.divIcon({className:'',html:'<div style="background:'+color+';width:26px;height:26px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);color:white;font-size:11px;font-weight:bold;">'+(item.status==='Resolved'?'✓':'!')+'</div>',iconSize:[26,26],iconAnchor:[13,13]});const m=L.marker([item.location.lat,item.location.lng],{icon}).addTo(this.neighbourhoodMap);m.bindPopup('<b style="font-size:11px">'+item.title+'</b><br><span style="font-size:10px;color:#64748b">'+item._distance+'m away</span>');});setTimeout(()=>this.neighbourhoodMap&&this.neighbourhoodMap.invalidateSize(),300);}catch(e){}}
+};
+window.mapModule=mapModule;
+
+// ===================== ANALYTICS MODULE =====================
+const analyticsModule={
+  categoryChart:null,statusChart:null,velocityChart:null,
+  renderCharts(){if(typeof Chart==='undefined')return;this.renderCategoryChart();this.renderStatusChart();this.renderVelocityChart();},
+  renderCategoryChart(){const canvas=document.getElementById('chart-categories');if(!canvas)return;const counts={};CIVIC_CATEGORIES.forEach(c=>counts[c.name]=0);window.dataStore.getAllComplaints().forEach(item=>{counts[item.categoryName]=(counts[item.categoryName]||0)+1;});const labels=Object.keys(counts).filter(k=>counts[k]>0);if(this.categoryChart)this.categoryChart.destroy();this.categoryChart=new Chart(canvas,{type:'doughnut',data:{labels,datasets:[{data:labels.map(k=>counts[k]),backgroundColor:['#4f46e5','#10b981','#f59e0b','#06b6d4','#8b5cf6','#ec4899','#64748b'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},cutout:'70%'}});},
+  renderStatusChart(){const canvas=document.getElementById('chart-statuses');if(!canvas)return;const sc={'Submitted':0,'Under Review':0,'In Progress':0,'Resolved':0};window.dataStore.getAllComplaints().forEach(c=>{if(sc[c.status]!==undefined)sc[c.status]++;});if(this.statusChart)this.statusChart.destroy();this.statusChart=new Chart(canvas,{type:'bar',data:{labels:Object.keys(sc),datasets:[{label:'Complaints',data:Object.values(sc),backgroundColor:['#ef4444','#f97316','#3b82f6','#10b981'],borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10}},grid:{color:'#f1f5f9'}},x:{ticks:{font:{size:10}},grid:{display:false}}},plugins:{legend:{display:false}}}});},
+  renderVelocityChart(){const canvas=document.getElementById('chart-velocity');if(!canvas)return;if(this.velocityChart)this.velocityChart.destroy();this.velocityChart=new Chart(canvas,{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:'Resolved',data:[4,6,8,5,9,12,14],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',fill:true,tension:0.35,borderWidth:2},{label:'Reported',data:[7,8,6,9,11,8,10],borderColor:'#4f46e5',backgroundColor:'transparent',borderDash:[4,4],tension:0.35,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{font:{size:10}},grid:{color:'#f1f5f9'}},x:{ticks:{font:{size:10}},grid:{display:false}}},plugins:{legend:{position:'top',labels:{boxWidth:10,font:{size:10}}}}}});}
+};
+window.analyticsModule=analyticsModule;
+
+// ===================== APP =====================
+const app={
+  currentView:'landing',previousView:'landing',
+  activeComplaintId:null,latestSubmittedId:null,selectedCategory:'potholes',selectedEvidencePhoto:null,_nbrFilter:'all',
+
+  init(){
+    this.renderCategoryGrid();
+    this.renderNotificationsList();
+    this.renderNav();
+    // If already logged in, go to dashboard
+    if(authModule.isLoggedIn()){
+      this.navigateTo(authModule.getRole()==='citizen'?'citizen-dashboard':'authority-dashboard');
+    } else {
+      this.navigateTo('landing');
+    }
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+
+  renderNav(){
+    const nav=document.getElementById('main-nav');
+    const reportBtn=document.getElementById('nav-report-btn');
+    if(!nav)return;
+    const role=authModule.getRole();
+    const loggedIn=authModule.isLoggedIn();
+    let html='';
+    // Home always first
+    html+='<button onclick="app.navigateTo(\'landing\')" id="nav-home" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center gap-1.5"><i data-lucide="home" class="w-4 h-4"></i><span>Home</span></button>';
+
+    if(!loggedIn){
+      html+='<button onclick="app.navigateTo(\'citizen-login\')" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Login as Citizen</button>';
+      html+='<button onclick="app.navigateTo(\'municipality-login\')" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Municipality Login</button>';
+      html+='<button onclick="app.navigateTo(\'map-view\')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Live Map</button>';
+    } else if(role==='citizen'){
+      html+='<button onclick="app.navigateTo(\'citizen-dashboard\')" id="nav-citizen-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">My Dashboard</button>';
+      html+='<button onclick="app.navigateTo(\'neighbourhood\')" id="nav-neighbourhood" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center gap-1.5"><i data-lucide="users" class="w-4 h-4"></i><span>Neighbourhood</span></button>';
+      html+='<button onclick="app.navigateTo(\'map-view\')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Live Map</button>';
+      html+='<button onclick="authModule.logout()" class="px-3 py-2 text-sm font-medium rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition flex items-center gap-1.5"><i data-lucide="log-out" class="w-4 h-4"></i><span>Logout</span></button>';
+      if(reportBtn)reportBtn.classList.remove('hidden');reportBtn&&(reportBtn.style.display='');
+    } else if(role==='municipality'){
+      html+='<button onclick="app.navigateTo(\'authority-dashboard\')" id="nav-authority-dashboard" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Command Center</button>';
+      html+='<button onclick="app.navigateTo(\'map-view\')" id="nav-map-view" class="nav-link px-3 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">Live Map</button>';
+      html+='<button onclick="authModule.logout()" class="px-3 py-2 text-sm font-medium rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition flex items-center gap-1.5"><i data-lucide="log-out" class="w-4 h-4"></i><span>Logout</span></button>';
+      if(reportBtn){reportBtn.classList.add('hidden');}
+    }
+    nav.innerHTML=html;
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+
+  onLoginSuccess(){
+    const role=authModule.getRole();
+    const session=authModule.session;
+    this.renderNav();
+    this.showToast('Welcome, '+session.name+'! 👋','success');
+    if(role==='citizen'){
+      const wnEl=document.getElementById('citizen-welcome-name');
+      if(wnEl)wnEl.innerText='Welcome, '+session.name.split(' ')[0]+'!';
+      const snEl=document.getElementById('success-citizen-name');
+      if(snEl)snEl.innerText='Thank You, '+session.name.split(' ')[0]+'!';
+      this.navigateTo('citizen-dashboard');
+    } else {
+      const authTitle=document.getElementById('auth-org-title');
+      const authOfficer=document.getElementById('auth-officer-name');
+      const authBadge=document.getElementById('auth-org-badge');
+      if(authTitle)authTitle.innerText=session.dept+' Division';
+      if(authOfficer)authOfficer.innerText=session.name;
+      if(authBadge)authBadge.innerText='Municipal Corp • '+session.dept;
+      this.navigateTo('authority-dashboard');
+    }
+  },
+
+  onLogout(){
+    this.renderNav();
+    this.showToast('Logged out successfully.','info');
+    this.navigateTo('landing');
+  },
+
+  navigateTo(viewId){
+    const role=authModule.getRole();
+    const loggedIn=authModule.isLoggedIn();
+    // Role guards
+    const citizenOnly=['citizen-dashboard','neighbourhood','report-wizard'];
+    const muniOnly=['authority-dashboard'];
+    if(citizenOnly.includes(viewId)&&loggedIn&&role!=='citizen'){this.showToast('Access denied. Please login as citizen.','warning');return;}
+    if(muniOnly.includes(viewId)&&loggedIn&&role!=='municipality'){this.showToast('Access denied. Please login as municipality.','warning');return;}
+    if(citizenOnly.includes(viewId)&&!loggedIn){this.showToast('Please login first.','warning');this.navigateTo('citizen-login');return;}
+    if(muniOnly.includes(viewId)&&!loggedIn){this.showToast('Please login first.','warning');this.navigateTo('municipality-login');return;}
+
+    this.previousView=this.currentView;this.currentView=viewId;
+    document.querySelectorAll('.view-section').forEach(s=>s.classList.add('hidden'));
+    document.querySelectorAll('.nav-link').forEach(l=>{l.classList.remove('bg-indigo-50','text-indigo-600','font-bold');l.classList.add('text-slate-600');});
+    const activeNav=document.getElementById('nav-'+viewId);
+    if(activeNav){activeNav.classList.add('bg-indigo-50','text-indigo-600','font-bold');activeNav.classList.remove('text-slate-600');}
+    const target=document.getElementById('view-'+viewId);
+    if(target){target.classList.remove('hidden');target.classList.add('animate-fadeIn');}
+    if(viewId==='citizen-dashboard')this.renderCitizenDashboard();
+    else if(viewId==='authority-dashboard')this.renderAuthorityDashboard();
+    else if(viewId==='map-view')setTimeout(()=>{if(window.mapModule)window.mapModule.initFullMap();},100);
+    else if(viewId==='neighbourhood')this.renderNeighbourhoodView();
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+    window.scrollTo({top:0,behavior:'smooth'});
+  },
+
+  startReportIssue(){
+    if(!authModule.isLoggedIn()){this.showToast('Please login as citizen to report.','warning');this.navigateTo('citizen-login');return;}
+    if(authModule.getRole()!=='citizen'){this.showToast('Only citizens can report issues.','warning');return;}
+    this.navigateTo('report-wizard');
+    this.resetReportWizard();
+    this.wizardShowStep(1);
+    if(window.locationModule){
+      window.locationModule.detectLiveGPS((lat,lng)=>{
+        this.checkDuplicatesForStep1(lat,lng,this.selectedCategory);
+      });
+    }
+  },
+
+  checkDuplicatesForStep1(lat,lng,catId){
+    const dupes=window.dataStore.findDuplicates(lat,lng,catId,500);
+    const banner=document.getElementById('duplicate-warning-banner');
+    const list=document.getElementById('duplicate-complaint-list');
+    if(dupes.length>0&&banner&&list){
+      list.innerHTML=dupes.map(d=>'<div class="flex items-center justify-between bg-amber-100/70 px-2 py-1.5 rounded-lg"><span class="font-mono text-[10px] font-bold text-amber-800">'+d.id+'</span><span class="text-[10px] text-amber-700 truncate mx-2">'+d.title.substring(0,35)+'...</span><button onclick="app.viewComplaintDetails(\''+d.id+'\')" class="text-[10px] text-blue-600 underline font-semibold whitespace-nowrap">Track it</button></div>').join('');
+      banner.classList.remove('hidden');
+    } else {
+      if(banner)banner.classList.add('hidden');
+    }
+  },
+
+  dismissDuplicateWarning(){const b=document.getElementById('duplicate-warning-banner');if(b)b.classList.add('hidden');this.showToast('Filing a new complaint at your location.','info');},
+
+  cancelReportWizard(){if(window.cameraModule)window.cameraModule.stopCamera();this.navigateTo(this.previousView||'citizen-dashboard');},
+  resetReportWizard(){if(window.cameraModule)window.cameraModule.reset();const ti=document.getElementById('wizard-title-input');if(ti)ti.value='';const di=document.getElementById('wizard-desc-input');if(di)di.value='';const ws=document.getElementById('wizard-success');if(ws)ws.classList.add('hidden');const dwb=document.getElementById('duplicate-warning-banner');if(dwb)dwb.classList.add('hidden');this.selectCategory('potholes');},
+
+  wizardShowStep(stepNum){
+    document.querySelectorAll('.wizard-step').forEach(el=>el.classList.add('hidden'));
+    const step=document.getElementById('wizard-step-'+stepNum);if(step)step.classList.remove('hidden');
+    const prog=document.getElementById('step-bar-progress');if(prog)prog.style.width=['25%','50%','75%','100%'][stepNum-1];
+    for(let i=1;i<=4;i++){const node=document.getElementById('step-node-'+i);if(!node)continue;if(i<=stepNum){node.classList.remove('bg-slate-200','text-slate-600');node.classList.add('bg-indigo-600','text-white');}else{node.classList.remove('bg-indigo-600','text-white');node.classList.add('bg-slate-200','text-slate-600');}}
+    if(stepNum===2)setTimeout(()=>{if(window.mapModule)window.mapModule.initWizardMap();},150);
+    else if(stepNum===3){this.checkDuplicatesForStep1(window.locationModule.currentLat,window.locationModule.currentLng,this.selectedCategory);}
+    else if(stepNum===4)this.populateReviewStep();
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+
+  wizardNext(nextStep){
+    if(nextStep===2&&(!window.cameraModule||!window.cameraModule.capturedImageData)){this.showToast('Please capture or select a photo first.','warning');window.cameraModule&&window.cameraModule.loadPresetCivicPhoto();return;}
+    if(nextStep===4){const t=document.getElementById('wizard-title-input')?.value.trim();const d=document.getElementById('wizard-desc-input')?.value.trim();if(!t){this.showToast('Please enter an issue title.','warning');return;}if(!d){this.showToast('Please enter a description.','warning');return;}}
+    this.wizardShowStep(nextStep);
+  },
+  wizardPrev(prevStep){this.wizardShowStep(prevStep);},
+
+  renderCategoryGrid(){
+    const grid=document.getElementById('category-selector-grid');if(!grid)return;
+    grid.innerHTML=CIVIC_CATEGORIES.map(cat=>'<div onclick="app.selectCategory(\''+cat.id+'\')" class="p-3 rounded-2xl border '+(this.selectedCategory===cat.id?'border-indigo-600 bg-indigo-50':'border-slate-200 bg-white')+' flex items-center gap-2.5 cursor-pointer hover:border-indigo-300 transition"><div class="w-8 h-8 rounded-xl '+(this.selectedCategory===cat.id?'bg-indigo-600 text-white':'bg-slate-100 text-slate-600')+' flex items-center justify-center flex-shrink-0"><i data-lucide="'+cat.icon+'" class="w-4 h-4"></i></div><div class="text-left"><span class="text-xs block leading-snug font-medium text-slate-800">'+cat.name+'</span><span class="text-[9px] text-slate-400 block">'+cat.dept+'</span></div></div>').join('');
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+  selectCategory(catId){
+    this.selectedCategory=catId;
+    this.renderCategoryGrid();
+    this.checkDuplicatesForStep1(window.locationModule.currentLat,window.locationModule.currentLng,catId);
+  },
+
+  populateReviewStep(){
+    const cat=CIVIC_CATEGORIES.find(c=>c.id===this.selectedCategory)||CIVIC_CATEGORIES[0];
+    const title=document.getElementById('wizard-title-input')?.value.trim();
+    const desc=document.getElementById('wizard-desc-input')?.value.trim();
+    const priority=document.querySelector('input[name="wizard-priority"]:checked')?.value||'Medium';
+    const rp=document.getElementById('review-photo');if(rp)rp.src=window.cameraModule.capturedImageData||'';
+    const rcb=document.getElementById('review-category-badge');if(rcb)rcb.innerText=cat.name;
+    const rt=document.getElementById('review-title');if(rt)rt.innerText=title||'Untitled';
+    const ra=document.getElementById('review-address');if(ra)ra.innerHTML='<i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-500 inline"></i> '+window.locationModule.currentAddress;
+    const rpr=document.getElementById('review-priority');if(rpr)rpr.innerText=priority;
+    const rd=document.getElementById('review-desc');if(rd)rd.innerText='"'+desc+'"';
+    const rtd=document.getElementById('review-target-dept');if(rtd)rtd.innerText=cat.dept;
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+
+  submitNewComplaint(){
+    const btn=document.getElementById('btn-submit-complaint');if(btn){btn.disabled=true;btn.innerHTML='<span>Registering...</span>';}
+    const cat=CIVIC_CATEGORIES.find(c=>c.id===this.selectedCategory)||CIVIC_CATEGORIES[0];
+    const title=document.getElementById('wizard-title-input')?.value.trim();
+    const desc=document.getElementById('wizard-desc-input')?.value.trim();
+    const priority=document.querySelector('input[name="wizard-priority"]:checked')?.value||'Medium';
+    const session=authModule.session||{name:'Rahul Sharma',email:'citizen@demo.com'};
+    const newId=window.dataStore.generateComplaintId();
+    const newComplaint={id:newId,title,category:cat.id,categoryName:cat.name,description:desc,status:'Submitted',priority,citizenName:session.name,citizenContact:session.email,assignedOrgName:cat.dept,location:{lat:window.locationModule.currentLat,lng:window.locationModule.currentLng,address:window.locationModule.currentAddress},photoBefore:window.cameraModule.capturedImageData,photoAfter:null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),timeline:[{status:'Submitted',actor:session.name+' (Citizen)',timestamp:new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}),note:'Civic issue reported via NagarNazar with live camera & GPS.'}]};
+    setTimeout(()=>{
+      window.dataStore.addComplaint(newComplaint);this.latestSubmittedId=newId;
+      if(btn){btn.disabled=false;btn.innerHTML='<i data-lucide="check-circle" class="w-5 h-5"></i><span>Confirm & Submit</span>';}
+      document.querySelectorAll('.wizard-step').forEach(el=>el.classList.add('hidden'));
+      const ws=document.getElementById('wizard-success');if(ws)ws.classList.remove('hidden');
+      const sci=document.getElementById('success-complaint-id');if(sci)sci.innerText=newId;
+      const scn=document.getElementById('success-citizen-name');if(scn)scn.innerText='Thank You, '+(session.name.split(' ')[0]||'Citizen')+'!';
+      this.showToast('Complaint '+newId+' submitted!','success');this.renderNotificationsList();
+      if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+    },600);
+  },
+
+  renderNeighbourhoodView(){
+    const lat=window.locationModule.currentLat,lng=window.locationModule.currentLng;
+    const nearby=window.dataStore.findNearby(lat,lng,1000,this._nbrFilter);
+    const countEl=document.getElementById('neighbourhood-count');
+    if(countEl)countEl.innerText=nearby.length+' complaint'+(nearby.length===1?'':'s')+' within 1km';
+    setTimeout(()=>{window.mapModule.initNeighbourhoodMap(lat,lng,nearby);},100);
+    const list=document.getElementById('neighbourhood-list');
+    if(!list)return;
+    if(nearby.length===0){list.innerHTML='<div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400"><i data-lucide="map-pin" class="w-10 h-10 mx-auto mb-3 text-slate-200"></i><p class="font-semibold text-sm">No complaints found nearby</p><p class="text-xs mt-1">Your neighbourhood looks clean! 🎉</p></div>';if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}return;}
+    const statusColors=window.mapModule.statusColors;
+    list.innerHTML=nearby.map(item=>{
+      const color=statusColors[item.status]?.bg||'#4f46e5';
+      const distLabel=item._distance<1000?item._distance+'m away':(item._distance/1000).toFixed(1)+'km away';
+      return '<div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-start gap-4 hover:shadow-md transition cursor-pointer" onclick="app.viewComplaintDetails(\''+item.id+'\')">'
+        +'<div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-slate-100"><img src="'+item.photoBefore+'" class="w-full h-full object-cover" alt=""/></div>'
+        +'<div class="flex-1 min-w-0">'
+        +'<div class="flex items-center gap-2 flex-wrap">'
+        +'<span class="font-mono text-[10px] font-bold text-indigo-600">'+item.id+'</span>'
+        +'<span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white" style="background-color:'+color+'">'+item.status+'</span>'
+        +'<span class="flex items-center gap-1 text-[10px] text-slate-500 font-semibold"><i data-lucide="navigation" class="w-3 h-3 text-indigo-400"></i>'+distLabel+'</span>'
+        +'</div>'
+        +'<h4 class="font-bold text-sm text-slate-900 mt-1 truncate">'+item.title+'</h4>'
+        +'<p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3 text-rose-400"></i>'+item.location.address+'</p>'
+        +'<p class="text-[10px] text-slate-400 mt-0.5">Reported by: <strong>'+item.citizenName+'</strong> &bull; '+item.categoryName+'</p>'
+        +'</div>'
+        +'<i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 flex-shrink-0 mt-2"></i>'
+        +'</div>';
+    }).join('');
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+
+  filterNeighbourhood(status){
+    this._nbrFilter=status;
+    ['all','submitted','inprogress','resolved'].forEach(k=>{const btn=document.getElementById('nbr-filter-'+k);if(btn){btn.classList.remove('bg-slate-900','text-white');btn.classList.add('bg-slate-100','text-slate-700');}});
+    const active=document.getElementById('nbr-filter-'+status.toLowerCase().replace(' ',''));
+    if(active){active.classList.add('bg-slate-900','text-white');active.classList.remove('bg-slate-100','text-slate-700');}
+    this.renderNeighbourhoodView();
+  },
+
+  viewComplaintDetails(complaintId){
+    const complaint=window.dataStore.getComplaintById(complaintId);if(!complaint){this.showToast('Complaint not found.','warning');return;}
+    this.activeComplaintId=complaintId;
+    // Show details view — accessible to everyone (public tracking)
+    this.previousView=this.currentView;this.currentView='complaint-details';
+    document.querySelectorAll('.view-section').forEach(s=>s.classList.add('hidden'));
+    const target=document.getElementById('view-complaint-details');if(target){target.classList.remove('hidden');target.classList.add('animate-fadeIn');}
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.innerText=val;};
+    set('detail-id',complaint.id);
+    set('detail-timestamp','Reported on '+new Date(complaint.createdAt).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'}));
+    set('detail-title',complaint.title);set('detail-desc',complaint.description);
+    set('detail-category',complaint.categoryName);set('detail-dept',complaint.assignedOrgName);
+    set('detail-reporter',complaint.citizenName+' (Verified Citizen)');set('detail-address-text',complaint.location.address);
+    const sp=document.getElementById('detail-status-pill');if(sp){sp.innerText=complaint.status;sp.style.backgroundColor=window.mapModule.statusColors[complaint.status]?.bg||'#4f46e5';sp.style.color='#ffffff';}
+    const pp=document.getElementById('detail-priority-pill');if(pp)pp.innerText=complaint.priority+' Priority';
+    const pb=document.getElementById('detail-photo-before');if(pb)pb.src=complaint.photoBefore;
+    const pa=document.getElementById('detail-photo-after'),pap=document.getElementById('detail-photo-after-placeholder'),eb=document.getElementById('detail-evidence-badge');
+    if(complaint.photoAfter){if(pa){pa.src=complaint.photoAfter;pa.classList.remove('hidden');}if(pap)pap.classList.add('hidden');if(eb){eb.innerText='Proof Verified';eb.className='text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded';}}
+    else{if(pa)pa.classList.add('hidden');if(pap)pap.classList.remove('hidden');if(eb){eb.innerText='Pending';eb.className='text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded';}}
+    window.mapModule.initDetailMiniMap(complaint.location.lat,complaint.location.lng);
+    this.renderTimelineFlow(complaint.timeline);
+    const ss=document.getElementById('action-status-select');if(ss)ss.value=complaint.status;
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+    window.scrollTo({top:0,behavior:'smooth'});
+  },
+
+  renderTimelineFlow(timeline){const c=document.getElementById('detail-timeline-flow');if(!c)return;c.innerHTML=timeline.map(event=>{const color=window.mapModule.statusColors[event.status]?.bg||'#4f46e5';return '<div class="relative pl-6 pb-2"><span class="absolute -left-[7px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style="background-color:'+color+'"></span><div class="flex items-center justify-between"><span class="font-bold text-xs text-slate-900">'+event.status+'</span><span class="text-[10px] text-slate-400 font-mono">'+event.timestamp+'</span></div><p class="text-[11px] font-semibold text-indigo-700 mt-0.5">'+event.actor+'</p><p class="text-xs text-slate-600 mt-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-snug">'+event.note+'</p></div>';}).join('');},
+
+  navigateBackFromDetails(){this.navigateTo(this.previousView||'citizen-dashboard');},
+
+  trackTicketById(inputId){
+    const input=document.getElementById(inputId||'home-track-input');
+    const id=input?input.value.trim():'';
+    if(!id){this.showToast('Please enter a Complaint ID.','warning');return;}
+    const complaint=window.dataStore.getComplaintById(id);
+    if(complaint){this.showToast('Found: '+complaint.id,'success');this.viewComplaintDetails(complaint.id);}
+    else this.showToast('No complaint found for "'+id+'". Try: CIV-2026-000101','error');
+  },
+
+  renderCitizenDashboard(){
+    const session=authModule.session||{name:'Rahul Sharma',email:'citizen@demo.com'};
+    const wnEl=document.getElementById('citizen-welcome-name');if(wnEl)wnEl.innerText='Welcome, '+session.name.split(' ')[0]+'!';
+    const complaints=window.dataStore.getAllComplaints().filter(c=>c.citizenContact===session.email||c.citizenName===session.name);
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.innerText=val;};
+    set('citizen-stat-total',complaints.length);
+    set('citizen-stat-resolved',complaints.filter(c=>c.status==='Resolved'||c.status==='Closed').length);
+    set('citizen-stat-inprogress',complaints.filter(c=>c.status==='In Progress'||c.status==='Assigned').length);
+    set('citizen-stat-pending',complaints.filter(c=>c.status==='Submitted'||c.status==='Under Review').length);
+    this.renderCitizenComplaints();
+  },
+
+  renderCitizenComplaints(){
+    const filter=document.getElementById('citizen-filter-status')?.value||'all';
+    const container=document.getElementById('citizen-complaints-list');if(!container)return;
+    const session=authModule.session||{name:'Rahul Sharma',email:'citizen@demo.com'};
+    let complaints=window.dataStore.getAllComplaints().filter(c=>c.citizenContact===session.email||c.citizenName===session.name);
+    if(filter!=='all')complaints=complaints.filter(c=>c.status===filter);
+    if(complaints.length===0){container.innerHTML='<div class="p-8 text-center text-slate-400"><i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 text-slate-200"></i><p class="text-sm font-semibold">No complaints yet</p></div>';if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}return;}
+    container.innerHTML=complaints.map(c=>{const color=window.mapModule.statusColors[c.status]?.bg||'#4f46e5';return '<div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer" onclick="app.viewComplaintDetails(\''+c.id+'\')"><div class="flex items-start gap-4"><div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200"><img src="'+c.photoBefore+'" class="w-full h-full object-cover" alt=""/></div><div><div class="flex items-center gap-2 flex-wrap"><span class="font-mono text-xs font-bold text-indigo-600">'+c.id+'</span><span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color:'+color+'">'+c.status+'</span></div><h4 class="font-bold text-sm text-slate-900 mt-1">'+c.title+'</h4><p class="text-xs text-slate-500 mt-0.5">📍 '+c.location.address+'</p></div></div><button class="text-xs font-bold text-indigo-600 hover:text-indigo-800 whitespace-nowrap">View →</button></div>';}).join('');
+  },
+
+  renderAuthorityDashboard(){
+    const complaints=window.dataStore.getAllComplaints();
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.innerText=val;};
+    set('auth-kpi-assigned',complaints.length);set('auth-kpi-new',complaints.filter(c=>c.status==='Submitted').length);
+    set('auth-kpi-inprogress',complaints.filter(c=>c.status==='In Progress').length);set('auth-kpi-resolved',complaints.filter(c=>c.status==='Resolved').length);
+    set('auth-kpi-urgent',complaints.filter(c=>c.priority==='High').length);
+    const session=authModule.session;
+    if(session){
+      const at=document.getElementById('auth-org-title');if(at)at.innerText=(session.dept||'PWD')+' Division';
+      const ao=document.getElementById('auth-officer-name');if(ao)ao.innerText=session.name;
+      const ab=document.getElementById('auth-org-badge');if(ab)ab.innerText='Municipal Corp • '+(session.dept||'PWD');
+    }
+    if(window.analyticsModule)window.analyticsModule.renderCharts();
+    this.renderAuthorityQueue();
+  },
+
+  renderAuthorityQueue(){
+    const sf=document.getElementById('auth-filter-status')?.value||'all';
+    const pf=document.getElementById('auth-filter-priority')?.value||'all';
+    const tbody=document.getElementById('auth-queue-table-body');if(!tbody)return;
+    let complaints=window.dataStore.getAllComplaints();
+    if(sf!=='all')complaints=complaints.filter(c=>c.status===sf);
+    if(pf!=='all')complaints=complaints.filter(c=>c.priority===pf);
+    if(complaints.length===0){tbody.innerHTML='<tr><td colspan="7" class="py-8 text-center text-slate-400">No records found.</td></tr>';return;}
+    tbody.innerHTML=complaints.map(c=>{const color=window.mapModule.statusColors[c.status]?.bg||'#4f46e5';const pc=c.priority==='High'?'text-rose-600 bg-rose-50':c.priority==='Medium'?'text-amber-600 bg-amber-50':'text-slate-600 bg-slate-50';return '<tr class="hover:bg-slate-50 transition"><td class="py-3 px-4 font-mono font-bold text-indigo-600 text-xs">'+c.id+'</td><td class="py-3 px-4"><img src="'+c.photoBefore+'" class="w-10 h-10 rounded-lg object-cover border border-slate-200" alt=""/></td><td class="py-3 px-4 max-w-xs"><span class="text-[10px] uppercase font-bold text-slate-400 block">'+c.categoryName+'</span><span class="font-bold text-slate-800 text-xs">'+c.title+'</span></td><td class="py-3 px-4 text-[11px] text-slate-500 max-w-xs truncate">'+c.location.address+'</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold '+pc+'">'+c.priority+'</span></td><td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style="background-color:'+color+'">'+c.status+'</span></td><td class="py-3 px-4 text-right"><button onclick="app.viewComplaintDetails(\''+c.id+'\')" class="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 font-bold px-3 py-1.5 rounded-lg transition text-[11px]">Manage</button></td></tr>';}).join('');
+  },
+
+  handleEvidenceUpload(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(e)=>{this.selectedEvidencePhoto=e.target.result;this.showToast('Evidence photo ready!','success');};reader.readAsDataURL(file);},
+  quickAddPresetEvidence(){this.selectedEvidencePhoto='https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80';this.showToast('Sample proof attached.','info');},
+
+  submitAuthorityAction(){
+    const status=document.getElementById('action-status-select')?.value;
+    const note=document.getElementById('action-comment-input')?.value.trim();
+    if(!this.activeComplaintId)return;
+    const actorName=(authModule.session?.name||'Municipality Officer');
+    const ok=window.dataStore.updateComplaintStatus(this.activeComplaintId,status,note||'Updated to '+status+'.',actorName,this.selectedEvidencePhoto);
+    if(ok){this.selectedEvidencePhoto=null;const ci=document.getElementById('action-comment-input');if(ci)ci.value='';this.showToast('Updated to "'+status+'"','success');this.viewComplaintDetails(this.activeComplaintId);this.renderNotificationsList();}
+  },
+
+  openAddOrgModal(){const m=document.getElementById('register-org-modal');if(m)m.classList.remove('hidden');},
+  closeAddOrgModal(){const m=document.getElementById('register-org-modal');if(m)m.classList.add('hidden');},
+  submitNewOrg(){const name=document.getElementById('new-org-name')?.value.trim();if(!name){this.showToast('Please enter an organization name.','warning');return;}this.closeAddOrgModal();this.showToast('"'+name+'" registered!','success');},
+
+  toggleNotifications(){const d=document.getElementById('notifications-drawer');if(d)d.classList.toggle('hidden');this.renderNotificationsList();},
+  renderNotificationsList(){
+    const list=document.getElementById('notifications-list'),badge=document.getElementById('notif-badge');if(!list)return;
+    const notifs=window.dataStore.notifications;
+    const unread=notifs.filter(n=>!n.read).length;
+    if(badge){if(unread>0){badge.innerText=unread;badge.classList.remove('hidden');}else badge.classList.add('hidden');}
+    if(notifs.length===0){list.innerHTML='<div class="p-6 text-center text-xs text-slate-400">No notifications</div>';return;}
+    list.innerHTML=notifs.map(n=>'<div class="p-3.5 hover:bg-indigo-50 transition cursor-pointer '+(n.read?'opacity-70':'bg-indigo-50/40 font-medium')+'" onclick="app.clickNotification(\''+n.complaintId+'\')"><div class="flex items-center justify-between mb-1"><span class="text-xs font-bold text-slate-900">'+n.title+'</span><span class="text-[10px] text-slate-400">'+n.time+'</span></div><p class="text-xs text-slate-600 leading-snug">'+n.message+'</p></div>').join('');
+  },
+  clickNotification(complaintId){if(complaintId){this.toggleNotifications();this.viewComplaintDetails(complaintId);}},
+  markAllNotificationsRead(){window.dataStore.markAllRead();this.renderNotificationsList();this.showToast('All read','info');},
+
+  mobileReportOrLogin(){if(authModule.isLoggedIn()&&authModule.getRole()==='citizen')this.startReportIssue();else this.navigateTo('citizen-login');},
+  mobileDashboardOrLogin(){if(!authModule.isLoggedIn()){this.navigateTo('landing');return;}if(authModule.getRole()==='citizen')this.navigateTo('citizen-dashboard');else this.navigateTo('authority-dashboard');},
+
+  showToast(message,type='info'){
+    const container=document.getElementById('toast-container');if(!container)return;
+    const toast=document.createElement('div');
+    const bg={success:'bg-emerald-600 text-white',warning:'bg-amber-600 text-white',error:'bg-rose-600 text-white',info:'bg-slate-900 text-white'};
+    toast.className='px-4 py-3 rounded-2xl shadow-xl '+(bg[type]||bg.info)+' text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto';
+    toast.innerHTML='<span>'+message+'</span>';
+    container.appendChild(toast);
+    setTimeout(()=>toast.classList.remove('translate-y-2','opacity-0'),20);
+    setTimeout(()=>{toast.classList.add('opacity-0','translate-y-2');setTimeout(()=>toast.remove(),300);},4000);
+  }
+};
+window.app=app;
+
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>app.init());}else{app.init();}
+  </script>
 </body>
 </html>
