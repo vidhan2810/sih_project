@@ -716,6 +716,31 @@
       </div>
     </div>
   </div>
+  <!-- RATE RESOLUTION / REVIEW MODAL -->
+<div id="review-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 animate-slideDown">
+    <div class="flex items-start justify-between mb-1">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center"><i data-lucide="star" class="w-5 h-5"></i></div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900" data-i18n="review.title">Rate the Resolution</h3>
+          <p class="text-[11px] text-slate-500" id="review-modal-ticket">CIV-2026-000000</p>
+        </div>
+      </div>
+      <button onclick="app.closeReviewModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <p class="text-xs text-slate-500 mt-2 mb-3" data-i18n="review.subtitle">How satisfied are you with how this civic issue was resolved?</p>
+    <!-- Interactive stars -->
+    <div id="review-modal-stars" class="flex items-center justify-center gap-2 py-2" role="radiogroup" aria-label="Star rating"></div>
+    <p id="review-modal-rating-label" class="text-center text-xs font-bold text-amber-600 h-4 mb-3"></p>
+    <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1" data-i18n="review.optional">Add a review <span class="text-slate-400 font-medium normal-case">(optional)</span></label>
+    <textarea id="review-modal-text" rows="3" maxlength="500" placeholder="Tell us what went well or what could improve..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
+    <div class="mt-5 flex gap-2">
+      <button onclick="app.closeReviewModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs" data-i18n="btn.cancel">Cancel</button>
+      <button onclick="app.submitReview()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md" data-i18n="review.submit">Submit Feedback</button>
+    </div>
+  </div>
+</div>
 
   <!-- MOBILE NAV -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 py-2 px-4 z-40 flex items-center justify-around shadow-lg">

@@ -490,6 +490,7 @@ const dataStore = {
     const num = this.complaints.length + 107;
     return `CIV-2026-${String(num).padStart(6, '0')}`;
   },
+  setRating(id,rating,review){const c=this.getComplaintById(id);if(!c)return false;c.rating=rating;if(review!==undefined)c.review=review;c.ratedAt=new Date().toISOString();this.saveComplaints();return true;},
 
   registerNewOrg(orgData) {
     const newOrg = {

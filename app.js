@@ -126,6 +126,61 @@ const app = {
     }
   },
 
+  renderStarRating(c){
+  if(c.status!=='Resolved'&&c.status!=='Closed')return '';
+  const rating=c.rating||0;const rated=rating>0;
+  let stars='';
+  for(let i=1;i<=5;i++){
+    const filled=i<=rating;
+    stars+='<button type="button" aria-label="Rate '+i+' star'+(i>1?'s':'')+'" onclick="event.stopPropagation();app.rateComplaint(\''+c.id+'\','+i+')" class="p-0.5 leading-none transition-transform hover:scale-125 focus:outline-none">'
+      +'<i data-lucide="star" class="w-4 h-4 '+(filled?'text-amber-400 fill-amber-400':'text-slate-300')+'"></i></button>';
+  }
+  const label=rated
+    ? '<span class="text-[10px] font-bold text-amber-600 ml-0.5">'+rating+'.0</span>'
+    : '<span class="text-[10px] font-semibold text-slate-400 ml-0.5">Rate</span>';
+  return '<div class="flex items-center gap-0.5" title="'+(rated?'You rated this '+rating+'/5':'Tap a star to rate this resolution')+'">'+stars+label+'</div>';
+},
+rateComplaint(id,stars){
+  window.dataStore.setRating(id,stars);
+  this.renderCitizenComplaints();
+  this.openReviewModal(id);
+},
+_reviewTargetId:null,
+openReviewModal(id){
+  const c=window.dataStore.getComplaintById(id);if(!c)return;
+  this._reviewTargetId=id;
+  const t=document.getElementById('review-modal-ticket');if(t)t.innerText=c.id+' \u2022 '+c.title;
+  const ta=document.getElementById('review-modal-text');if(ta)ta.value=c.review||'';
+  this.renderReviewModalStars(c.rating||0);
+  const m=document.getElementById('review-modal');if(m)m.classList.remove('hidden');
+  if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+},
+renderReviewModalStars(rating){
+  const wrap=document.getElementById('review-modal-stars');if(!wrap)return;
+  let html='';
+  for(let i=1;i<=5;i++){
+    const filled=i<=rating;
+    html+='<button type="button" role="radio" aria-checked="'+(i===rating)+'" aria-label="'+i+' star'+(i>1?'s':'')+'" onclick="app.setModalRating('+i+')" class="p-1 transition-transform hover:scale-125 focus:outline-none">'
+      +'<i data-lucide="star" class="w-8 h-8 '+(filled?'text-amber-400 fill-amber-400':'text-slate-300')+'"></i></button>';
+  }
+  wrap.innerHTML=html;wrap.dataset.rating=rating;
+  const labels={0:'',1:'Poor',2:'Fair',3:'Good',4:'Very good',5:'Excellent'};
+  const lbl=document.getElementById('review-modal-rating-label');if(lbl)lbl.innerText=labels[rating]||'';
+  if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+},
+setModalRating(stars){this.renderReviewModalStars(stars);},
+closeReviewModal(){const m=document.getElementById('review-modal');if(m)m.classList.add('hidden');this._reviewTargetId=null;},
+submitReview(){
+  if(!this._reviewTargetId){this.closeReviewModal();return;}
+  const wrap=document.getElementById('review-modal-stars');
+  const rating=wrap?parseInt(wrap.dataset.rating||'0',10):0;
+  if(!rating){this.showToast('Please select a star rating first.','warning');return;}
+  const review=(document.getElementById('review-modal-text')?.value||'').trim();
+  window.dataStore.setRating(this._reviewTargetId,rating,review);
+  this.showToast('Thank you! Your '+rating+'-star feedback was saved.','success');
+  this.closeReviewModal();
+  this.renderCitizenComplaints();
+},
   renderCitizenDashboard() {
     const complaints = window.dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
     
