@@ -206,6 +206,52 @@ submitReview(){
 
     this.renderCitizenComplaints();
   },
+_reviewTargetId:null,
+renderStarRating(c){
+  if(c.status!=='Resolved'&&c.status!=='Closed')return'';
+  const rating=c.rating||0;const rated=rating>0;let stars='';
+  for(let i=1;i<=5;i++){
+    const filled=i<=rating;
+    stars+='<button type="button" aria-label="Rate '+i+' star" onclick="app.rateComplaint(\''+c.id+'\','+i+')" class="p-0.5 leading-none transition-transform hover:scale-125 focus:outline-none"><i data-lucide="star" class="w-4 h-4 '+(filled?'text-amber-400 fill-amber-400':'text-slate-300')+'"></i></button>';
+  }
+  const label=rated?'<span class="text-[10px] font-bold text-amber-600 ml-1">'+rating+'.0</span>':'<span class="text-[10px] font-semibold text-slate-400 ml-1">Rate Resolution</span>';
+  return '<div class="flex items-center gap-0.5">'+stars+label+'</div>';
+},
+rateComplaint(id,stars){window.dataStore.setRating(id,stars);this.renderCitizenComplaints();this.openReviewModal(id);},
+openReviewModal(id){
+  const c=window.dataStore.getComplaintById(id);if(!c)return;
+  this._reviewTargetId=id;
+  const t=document.getElementById('review-modal-ticket');if(t)t.innerText=c.id+' • '+c.title;
+  const ta=document.getElementById('review-modal-text');if(ta)ta.value=c.review||'';
+  this.renderReviewModalStars(c.rating||0);
+  const m=document.getElementById('review-modal');if(m)m.classList.remove('hidden');
+  if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+},
+renderReviewModalStars(rating){
+  const wrap=document.getElementById('review-modal-stars');if(!wrap)return;
+  let html='';
+  for(let i=1;i<=5;i++){
+    const filled=i<=rating;
+    html+='<button type="button" role="radio" aria-checked="'+(i===rating)+'" aria-label="'+i+' star" onclick="app.setModalRating('+i+')" class="p-1 transition-transform hover:scale-125 focus:outline-none"><i data-lucide="star" class="w-8 h-8 '+(filled?'text-amber-400 fill-amber-400':'text-slate-300')+'"></i></button>';
+  }
+  wrap.innerHTML=html;wrap.dataset.rating=rating;
+  const labels={0:'',1:'Poor',2:'Fair',3:'Good',4:'Very good',5:'Excellent'};
+  const lbl=document.getElementById('review-modal-rating-label');if(lbl)lbl.innerText=labels[rating]||'';
+  if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+},
+setModalRating(stars){this.renderReviewModalStars(stars);},
+closeReviewModal(){const m=document.getElementById('review-modal');if(m)m.classList.add('hidden');this._reviewTargetId=null;},
+submitReview(){
+  if(!this._reviewTargetId){this.closeReviewModal();return;}
+  const wrap=document.getElementById('review-modal-stars');
+  const rating=wrap?parseInt(wrap.dataset.rating||'0',10):0;
+  if(!rating){this.showToast('Please select a star rating first.','warning');return;}
+  const review=(document.getElementById('review-modal-text')?.value||'').trim();
+  window.dataStore.setRating(this._reviewTargetId,rating,review);
+  this.showToast('Thank you! Your '+rating+'-star feedback was saved.','success');
+  this.closeReviewModal();
+  this.renderCitizenComplaints();
+},
 
 renderCitizenComplaints() {
     const filter = document.getElementById('citizen-filter-status')?.value || 'all';
@@ -229,46 +275,11 @@ renderCitizenComplaints() {
       return;
     }
 
-    container.innerHTML = complaints.map(c => {
-      const color = window.mapModule.statusColors[c.status]?.bg || '#3b82f6';
-      
-      // Generate the rating widget (will show stars if Resolved/Closed, or empty string otherwise)
-      const ratingWidget = (c.status === 'Resolved' || c.status === 'Closed') ? this.renderStarRating(c) : '';
-
-      return `
-        <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer border-b border-slate-100" onclick="app.viewComplaintDetails('${c.id}')">
-          <div class="flex items-start gap-4">
-            <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 shadow-sm relative">
-              <img src="${c.photoBefore}" class="w-full h-full object-cover" alt="Complaint photo"/>
-              <span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/70 text-white text-[8px] font-mono">LIVE</span>
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-mono text-xs font-bold text-blue-600">${c.id}</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color: ${color}">${c.status}</span>
-                <span class="text-[10px] text-slate-400 font-semibold">• ${c.categoryName}</span>
-              </div>
-              <h4 class="font-bold text-sm text-slate-900 mt-1">${c.title}</h4>
-              <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                📍 ${c.location.address}
-              </p>
-              
-              <!-- Star Rating Container (Stops click from opening detail view) -->
-              <div class="mt-2" onclick="event.stopPropagation()">
-                ${ratingWidget}
-              </div>
-            </div>
-          </div>
-          <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-            <span class="text-[11px] text-slate-400">Updated: ${new Date(c.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-            <button class="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
-              <span>Track Progress</span>
-              <i data-lucide="chevron-right" class="w-4 h-4"></i>
-            </button>
-          </div>
-        </div>
-      `;
-    }).join('');
+    container.innerHTML=complaints.map(c=>{
+  const color=window.mapModule.statusColors[c.status]?.bg||'#4f46e5';
+  const ratingWidget=(c.status==='Resolved'||c.status==='Closed')?this.renderStarRating(c):'';
+  return '<div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer" onclick="app.viewComplaintDetails(\''+c.id+'\')"><div class="flex items-start gap-4"><div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200"><img src="'+c.photoBefore+'" class="w-full h-full object-cover" alt=""/></div><div><div class="flex items-center gap-2 flex-wrap"><span class="font-mono text-xs font-bold text-indigo-600">'+c.id+'</span><span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color:'+color+'">'+c.status+'</span></div><h4 class="font-bold text-sm text-slate-900 mt-1">'+c.title+'</h4><p class="text-xs text-slate-500 mt-0.5">📍 '+c.location.address+'</p><div class="mt-2" onclick="event.stopPropagation()">'+ratingWidget+'</div></div></div><button class="text-xs font-bold text-indigo-600 hover:text-indigo-800 whitespace-nowrap">'+langModule.t('view.btn')+'</button></div>';
+}).join('');
 
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
