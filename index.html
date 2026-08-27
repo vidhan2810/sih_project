@@ -614,21 +614,6 @@
           </div>
         </div>
         <div class="space-y-6">
-           <!-- CITIZEN STAR RATING — shown only for Resolved complaints -->
-          <div id="citizen-rating-card" class="hidden bg-white border border-emerald-200 rounded-3xl shadow-sm p-6">
-            <div class="flex items-center gap-2 mb-1"><i data-lucide="star" class="w-5 h-5 text-amber-400"></i><h3 class="font-bold text-sm text-slate-900">Rate this Resolution</h3></div>
-            <p class="text-xs text-slate-500 mb-4">How satisfied are you with how this issue was resolved?</p>
-            <div class="flex items-center justify-center gap-2 mb-4" id="star-rating-row">
-              <button onclick="app.setRating(1)" class="star-btn text-4xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110" data-val="1">★</button>
-              <button onclick="app.setRating(2)" class="star-btn text-4xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110" data-val="2">★</button>
-              <button onclick="app.setRating(3)" class="star-btn text-4xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110" data-val="3">★</button>
-              <button onclick="app.setRating(4)" class="star-btn text-4xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110" data-val="4">★</button>
-              <button onclick="app.setRating(5)" class="star-btn text-4xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110" data-val="5">★</button>
-            </div>
-            <p id="rating-label" class="text-center text-xs font-semibold text-slate-400 mb-3">Tap a star to rate</p>
-            <div id="already-rated-msg" class="hidden text-center text-xs text-emerald-600 font-bold py-2">✓ Thank you for your feedback!</div>
-            </div>
-          </div>
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
             <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> <span data-i18n="timeline.title">Timeline</span></h3>
             <div id="detail-timeline-flow" class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200"></div>
@@ -708,36 +693,6 @@
     </section>
 
   </main>
-              <select id="review-speed" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400">
-              <option value="Fast">⚡ Fast (within 24h)</option>
-              <option value="Normal" selected>👍 Normal (2–5 days)</option>
-              <option value="Slow">🐢 Slow (1+ week)</option>
-              <option value="Very Slow">😤 Very Slow</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Work Quality</label>
-            <select id="review-quality" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400">
-              <option value="Excellent">🌟 Excellent</option>
-              <option value="Good" selected>✅ Good</option>
-              <option value="Average">😐 Average</option>
-              <option value="Poor">👎 Poor</option>
-            </select>
-          </div>
-        </div>
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" id="review-would-recommend" class="w-4 h-4 rounded accent-amber-400">
-          <span class="text-xs text-slate-700 font-medium">I would recommend NagarNazar to others</span>
-        </label>
-      </div>
-      <div class="mt-6 flex gap-3">
-        <button onclick="app.closeReviewModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl text-sm transition">Skip</button>
-        <button onclick="app.submitReview()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 rounded-2xl shadow-lg text-sm transition flex items-center justify-center gap-2">
-          <i data-lucide="send" class="w-4 h-4"></i> Submit Review
-        </button>
-      </div>
-    </div>
-  </div>
 
   <!-- REGISTER ORG MODAL -->
   <div id="register-org-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -864,7 +819,7 @@ const TRANSLATIONS={
     'landing.citizen_desc':'गड्ढा, कचरे का ढेर, पाइप लीक, या टूटी स्ट्रीटलाइट देखी? 60 सेकंड में लाइव फोटो लें और रिपोर्ट करें।',
     'landing.feat1':'GPS वॉटरमार्क के साथ लाइव कैमरा कैप्चर','landing.feat2':'पड़ोस अलर्ट — जानें क्या पहले से रिपोर्ट हो चुका है','landing.feat3':'डुप्लीकेट रोकथाम — एक ही समस्या दोबारा न भेजें',
     'landing.muni_title':'मैं नगरपालिका / प्राधिकरण हूं',
-    'landing.muni_desc':'नगर निगम, PWD, कचरा विभाग, जल बोर्ड, NGO और RWA के लिए — शिकायतें संभालें, फील्ड टीम भेजें, समाधान प्रमाण अपलोड करें।',
+    'landing.muni_desc':'नगर निगम, PWD, कचरा विभाग, ज�� बोर्ड, NGO और RWA के लिए — शिकायतें संभालें, फील्ड टीम भेजें, समाधान प्रमाण अपलोड करें।',
     'landing.mfeat1':'GIS ऑपरेशनल कमांड और क्षेत्र आधारित ट्रिएज','landing.mfeat2':'फील्ड टीम तैनाती और SLA गवर्नेंस','landing.mfeat3':'समाधान के बाद फोटो अपलोड करें',
     'landing.citizen_btn':'नागरिक के रूप में लॉगिन करें','landing.muni_btn':'नगरपालिका के रूप में लॉगिन करें',
     'landing.track_label':'पहले से शिकायत की? ID से ट्रैक करें','landing.track_btn':'ट्रैक करें',
@@ -1401,81 +1356,11 @@ const app={
     else{if(pa)pa.classList.add('hidden');if(pap)pap.classList.remove('hidden');if(eb){eb.innerText='Pending';eb.className='text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded';}}
     window.mapModule.initDetailMiniMap(complaint.location.lat,complaint.location.lng);this.renderTimelineFlow(complaint.timeline);
     const ss=document.getElementById('action-status-select');if(ss)ss.value=complaint.status;
-    // Show rating card for resolved complaints (citizen only)
-    const ratingCard=document.getElementById('citizen-rating-card');
-    const alreadyRated=document.getElementById('already-rated-msg');
-    const starRow=document.getElementById('star-rating-row');
-    const ratingLabel=document.getElementById('rating-label');
-    if(ratingCard){
-      const isResolved=complaint.status==='Resolved'||complaint.status==='Closed';
-      if(isResolved){
-        ratingCard.classList.remove('hidden');
-        const savedRating=complaint.citizenRating;
-        if(savedRating){
-          if(alreadyRated)alreadyRated.classList.remove('hidden');
-          if(starRow)starRow.classList.add('hidden');
-          if(ratingLabel)ratingLabel.classList.add('hidden');
-          document.querySelectorAll('.star-btn').forEach((b,i)=>{b.style.color=i<savedRating?'#f59e0b':'#cbd5e1';});
-        } else {
-          if(alreadyRated)alreadyRated.classList.add('hidden');
-          if(starRow)starRow.classList.remove('hidden');
-          if(ratingLabel)ratingLabel.classList.remove('hidden');
-          document.querySelectorAll('.star-btn').forEach(b=>{b.style.color='#cbd5e1';});
-        }
-      } else {
-        ratingCard.classList.add('hidden');
-      }
-    }
     if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
     window.scrollTo({top:0,behavior:'smooth'});
   },
   renderTimelineFlow(timeline){const c=document.getElementById('detail-timeline-flow');if(!c)return;c.innerHTML=timeline.map(event=>{const color=window.mapModule.statusColors[event.status]?.bg||'#4f46e5';return '<div class="relative pl-6 pb-2"><span class="absolute -left-[7px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style="background-color:'+color+'"></span><div class="flex items-center justify-between"><span class="font-bold text-xs text-slate-900">'+event.status+'</span><span class="text-[10px] text-slate-400 font-mono">'+event.timestamp+'</span></div><p class="text-[11px] font-semibold text-indigo-700 mt-0.5">'+event.actor+'</p><p class="text-xs text-slate-600 mt-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-snug">'+event.note+'</p></div>';}).join('');},
   navigateBackFromDetails(){this.navigateTo(this.previousView||'citizen-dashboard');},
-  
-  setRating(val){
-    this._pendingRating=val;
-    const labels=['','😞 Poor','😕 Below Average','😊 Average','👍 Good','🤩 Excellent!'];
-    const lbl=document.getElementById('rating-label');if(lbl)lbl.innerText=labels[val]||'';
-    document.querySelectorAll('.star-btn').forEach((b,i)=>{b.style.color=i<val?'#f59e0b':'#cbd5e1';});
-    // Open review modal after short delay
-    setTimeout(()=>{
-      const modal=document.getElementById('review-modal');if(!modal)return;
-      const msd=document.getElementById('modal-stars-display');
-      if(msd){msd.innerHTML='';for(let i=1;i<=5;i++){const s=document.createElement('span');s.innerText='★';s.style.color=i<=val?'#f59e0b':'#cbd5e1';s.style.fontSize='1.5rem';msd.appendChild(s);}}
-      const rti=document.getElementById('review-text-input');if(rti)rti.value='';
-      modal.classList.remove('hidden');
-      if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
-    },400);
-  },
-
-  closeReviewModal(){
-    const modal=document.getElementById('review-modal');if(modal)modal.classList.add('hidden');
-    // Save just the star rating even if review skipped
-    if(this._pendingRating&&this.activeComplaintId){
-      const c=window.dataStore.getComplaintById(this.activeComplaintId);
-      if(c){c.citizenRating=this._pendingRating;window.dataStore._save();}
-      const ar=document.getElementById('already-rated-msg');const sr=document.getElementById('star-rating-row');const rl=document.getElementById('rating-label');
-      if(ar)ar.classList.remove('hidden');if(sr)sr.classList.add('hidden');if(rl)rl.classList.add('hidden');
-      this.showToast('Rating saved! ⭐'.repeat(this._pendingRating>3?2:1),'success');
-    }
-    this._pendingRating=null;
-  },
-  submitReview(){
-    const modal=document.getElementById('review-modal');
-    const reviewText=document.getElementById('review-text-input')?.value.trim();
-    const speed=document.getElementById('review-speed')?.value;
-    const quality=document.getElementById('review-quality')?.value;
-    const recommend=document.getElementById('review-would-recommend')?.checked;
-    if(this.activeComplaintId&&this._pendingRating){
-      const c=window.dataStore.getComplaintById(this.activeComplaintId);
-      if(c){c.citizenRating=this._pendingRating;c.citizenReview={text:reviewText,speed,quality,recommend,submittedAt:new Date().toISOString()};window.dataStore._save();}
-      const ar=document.getElementById('already-rated-msg');const sr=document.getElementById('star-rating-row');const rl=document.getElementById('rating-label');
-      if(ar)ar.classList.remove('hidden');if(sr)sr.classList.add('hidden');if(rl)rl.classList.add('hidden');
-    }
-    if(modal)modal.classList.add('hidden');
-    this.showToast('Review submitted! Thank you for your feedback. 🙏','success');
-    this._pendingRating=null;
-  },
 
   
   trackTicketById(inputId){const input=document.getElementById(inputId||'home-track-input');const id=input?input.value.trim():'';if(!id){this.showToast('Please enter a Complaint ID.','warning');return;}const complaint=window.dataStore.getComplaintById(id);if(complaint){this.showToast('Found: '+complaint.id,'success');this.viewComplaintDetails(complaint.id);}else this.showToast('Not found. Try: CIV-2026-000101','error');},
