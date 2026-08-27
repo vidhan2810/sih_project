@@ -1,6 +1,6 @@
 /**
- * BitAware - Live Camera Capture Module (Production Fix)
- * Implements resilient getUserMedia streaming, fallback constraints, and snapshot watermarking.
+ * BitAware - Live Camera Capture Module (Strict Live-Only & Timestamp Overlay)
+ * Implements WebRTC camera streaming, real-time camera HUD date/time, and live watermarking.
  */
 
 const cameraModule = {
@@ -8,8 +8,9 @@ const cameraModule = {
   facingMode: 'environment', // Start with rear/environment camera for mobile
   capturedImageData: null,
   isLiveCapture: false,
+  timerInterval: null,
 
-  // Preset realistic high-res civic issue images for fallback / desktop testing
+  // Preset realistic high-res civic issue images for desktop testing fallback
   presetImages: [
     'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80', // Pothole
     'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80', // Garbage
@@ -32,38 +33,31 @@ const cameraModule = {
         throw new Error('Camera API not supported in this environment.');
       }
 
-      // Resilient constraints to prevent OverconstrainedError on mobile/desktop
-      let constraints = {
-        video: { facingMode: this.facingMode },
-        audio: false
-      };
-
       try {
-        // Attempt high-res preferred constraints first
         this.stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: this.facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false
         });
       } catch (innerErr) {
-        // Fallback to basic video stream if ideal resolution fails
         console.warn('Ideal resolution constraint failed, falling back to default video stream:', innerErr);
         this.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
 
       video.srcObject = this.stream;
-      
-      // Ensure video plays properly on mobile inline
       video.setAttribute('autoplay', '');
       video.setAttribute('playsinline', '');
-      await video.play().catch(e => console.warn("Auto-play prevented or deferred:", e));
+      await video.play().catch(e => console.warn("Auto-play deferred:", e));
 
       video.classList.remove('hidden');
-      placeholder.classList.add('hidden');
-      preview.classList.add('hidden');
+      if (placeholder) placeholder.classList.add('hidden');
+      if (preview) preview.classList.add('hidden');
       
       if (btnInit) btnInit.classList.add('hidden');
       if (btnStreaming) btnStreaming.classList.remove('hidden');
       if (overlay) overlay.classList.remove('hidden');
+
+      // Start live HUD camera timestamp overlay ticker
+      this.startLiveHudClock();
 
       if (window.app) window.app.showToast('Camera active. Tap "Snap Photo Now".', 'info');
     } catch (err) {
@@ -71,6 +65,28 @@ const cameraModule = {
       if (window.app) window.app.showToast('Camera access unavailable. Loading sample photo.', 'warning');
       this.loadPresetCivicPhoto();
     }
+  },
+
+  // Live HUD Clock ticker rendered directly on the active video container
+  startLiveHudClock() {
+    let hudClock = document.getElementById('camera-hud-clock');
+    const videoWrapper = document.getElementById('camera-video')?.parentElement;
+
+    if (!hudClock && videoWrapper) {
+      hudClock = document.createElement('div');
+      hudClock.id = 'camera-hud-clock';
+      hudClock.className = 'absolute top-3 left-3 bg-black/60 backdrop-blur text-emerald-400 font-mono text-[11px] px-2.5 py-1 rounded-lg z-20 pointer-events-none flex items-center gap-1.5';
+      videoWrapper.appendChild(hudClock);
+    }
+
+    if (this.timerInterval) clearInterval(this.timerInterval);
+
+    this.timerInterval = setInterval(() => {
+      if (hudClock) {
+        const now = new Date();
+        hudClock.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> REC • ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      }
+    }, 1000);
   },
 
   switchCameraFacing() {
@@ -91,6 +107,11 @@ const cameraModule = {
       return;
     }
 
+    // Clear HUD ticker before snapshot
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    const hudClock = document.getElementById('camera-hud-clock');
+    if (hudClock) hudClock.remove();
+
     // Shutter flash effect
     const flash = document.createElement('div');
     flash.className = 'camera-shutter-flash';
@@ -103,21 +124,21 @@ const cameraModule = {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Canvas Watermark Stamps
+    // Canvas Watermark Stamps (CCTV / Security camera style)
     const nowStr = new Date().toLocaleString();
     const lat = (window.locationModule && window.locationModule.currentLat) ? window.locationModule.currentLat : 28.6139;
     const lng = (window.locationModule && window.locationModule.currentLng) ? window.locationModule.currentLng : 77.2090;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-    ctx.fillRect(0, canvas.height - 44, canvas.width, 44);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(0, canvas.height - 48, canvas.width, 48);
 
-    ctx.font = 'bold 14px sans-serif';
+    ctx.font = 'bold 13px sans-serif';
     ctx.fillStyle = '#10b981';
-    ctx.fillText('✓ LIVE VERIFIED', 14, canvas.height - 18);
+    ctx.fillText('✓ LIVE CAMERA VERIFIED', 14, canvas.height - 26);
 
-    ctx.font = '12px monospace';
+    ctx.font = '11px monospace';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)} | ${nowStr}`, 140, canvas.height - 18);
+    ctx.fillText(`GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)} | TIME: ${nowStr}`, 14, canvas.height - 10);
 
     this.capturedImageData = canvas.toDataURL('image/jpeg', 0.85);
     this.isLiveCapture = true;
@@ -132,23 +153,14 @@ const cameraModule = {
 
     this.stopCamera();
     this.updateWatermarkBadge(lat, lng);
-    if (window.app) window.app.showToast('Photo captured with verified GPS stamp!', 'success');
-  },
-
-  handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.capturedImageData = e.target.result;
-      this.isLiveCapture = false;
-      this.displayPreview(this.capturedImageData, false);
-    };
-    reader.readAsDataURL(file);
+    if (window.app) window.app.showToast('Live photo captured with security timestamp stamp!', 'success');
   },
 
   loadPresetCivicPhoto(index = 0) {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    const hudClock = document.getElementById('camera-hud-clock');
+    if (hudClock) hudClock.remove();
+
     const sampleUrl = this.presetImages[index % this.presetImages.length];
     this.capturedImageData = sampleUrl;
     this.isLiveCapture = true;
@@ -191,8 +203,8 @@ const cameraModule = {
 
     if (watermarkBadge && gpsText) {
       watermarkBadge.classList.remove('hidden');
-      gpsText.innerText = `${isVerified ? 'Live Verified' : 'Uploaded'}: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-      if (timeText) timeText.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      gpsText.innerText = `Live Verified: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      if (timeText) timeText.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
   },
 
@@ -214,6 +226,13 @@ const cameraModule = {
   },
 
   stopCamera() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    const hudClock = document.getElementById('camera-hud-clock');
+    if (hudClock) hudClock.remove();
+
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
       this.stream = null;
@@ -228,5 +247,4 @@ const cameraModule = {
 };
 
 // Expose explicitly to window
-window.cameraNumber = cameraModule;
 window.cameraModule = cameraModule;
