@@ -426,7 +426,7 @@
           <div id="camera-placeholder" class="flex flex-col items-center text-center p-6 text-slate-400">
             <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 mb-3 animate-pulse"><i data-lucide="camera" class="w-8 h-8"></i></div>
             <p class="text-sm font-semibold text-slate-300" data-i18n="cam.placeholder_title">Camera is ready</p>
-            <p class="text-xs text-slate-500 mt-1" data-i18n="cam.placeholder_sub">Tap below to open live camera stream</p>
+            <p class="text-xs text-slate-500 mt-1" data-i18n="cam.placeholder_sub">Tap below to open live camera or snap via phone</p>
           </div>
 
           <!-- Flip Camera Overlay -->
@@ -443,10 +443,14 @@
 
         <!-- Camera Buttons -->
         <div class="max-w-md mx-auto mt-6 flex flex-col gap-3">
-          <div id="camera-btn-group-init" class="w-full">
-            <button onclick="cameraModule.startCamera()" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs transition active:scale-95">
+          <div id="camera-btn-group-init" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button onclick="cameraModule.startCamera()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs transition active:scale-95">
               <i data-lucide="video" class="w-4 h-4"></i><span data-i18n="cam.open_live">Open Live Camera Stream</span>
             </button>
+            <label class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs cursor-pointer transition active:scale-95">
+              <i data-lucide="camera" class="w-4 h-4"></i><span data-i18n="cam.snap_phone">Snap via Phone Camera</span>
+              <input type="file" accept="image/*" capture="environment" class="hidden" onchange="cameraModule.handleFileUpload(event)">
+            </label>
           </div>
           <div id="camera-btn-group-streaming" class="hidden flex items-center justify-center gap-4">
             <button onclick="cameraModule.captureSnapshot()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95">
@@ -614,6 +618,20 @@
           </div>
         </div>
         <div class="space-y-6">
+          <!-- CITIZEN STAR RATING (shown only for Resolved/Closed complaints) -->
+          <div id="citizen-rating-card" class="hidden bg-white border-2 border-amber-200 rounded-3xl shadow-sm p-6">
+            <div class="flex items-center gap-2 mb-1"><i data-lucide="star" class="w-5 h-5 text-amber-400"></i><h3 class="font-bold text-sm text-slate-900">Rate this Resolution</h3></div>
+            <p class="text-xs text-slate-500 mb-5">How satisfied are you with how this issue was handled?</p>
+            <div class="flex items-center justify-center gap-3 mb-3" id="detail-star-row">
+              <button onclick="app.rateComplaint(app.activeComplaintId,1)" class="star-rate-btn text-5xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110 leading-none" data-val="1">★</button>
+              <button onclick="app.rateComplaint(app.activeComplaintId,2)" class="star-rate-btn text-5xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110 leading-none" data-val="2">★</button>
+              <button onclick="app.rateComplaint(app.activeComplaintId,3)" class="star-rate-btn text-5xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110 leading-none" data-val="3">★</button>
+              <button onclick="app.rateComplaint(app.activeComplaintId,4)" class="star-rate-btn text-5xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110 leading-none" data-val="4">★</button>
+              <button onclick="app.rateComplaint(app.activeComplaintId,5)" class="star-rate-btn text-5xl text-slate-300 hover:text-amber-400 transition transform hover:scale-110 leading-none" data-val="5">★</button>
+            </div>
+            <p id="detail-star-label" class="text-center text-xs font-semibold text-slate-400">Tap a star to rate</p>
+            <p id="detail-already-rated" class="hidden text-center text-xs font-bold text-emerald-600 mt-2">✓ Your feedback was saved!</p>
+          </div>
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
             <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> <span data-i18n="timeline.title">Timeline</span></h3>
             <div id="detail-timeline-flow" class="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200"></div>
@@ -694,6 +712,56 @@
 
   </main>
 
+  <!-- ===== REVIEW POPUP MODAL ===== -->
+  <div id="review-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 animate-slideDown">
+      <div class="text-center mb-5">
+        <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="message-square" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900">Write a Detailed Review</h3>
+        <p class="text-xs text-slate-500 mt-1">Your feedback helps improve municipal services.</p>
+        <div class="flex justify-center gap-1 mt-3" id="modal-stars-display"></div>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Your Review</label>
+          <textarea id="review-text-input" rows="4" placeholder="Describe how the issue was handled, how long it took, and if you're satisfied with the resolution..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Speed of Resolution</label>
+            <select id="review-speed" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400">
+              <option value="Fast">⚡ Fast (within 24h)</option>
+              <option value="Normal" selected>👍 Normal (2–5 days)</option>
+              <option value="Slow">🐢 Slow (1+ week)</option>
+              <option value="Very Slow">😤 Very Slow</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-bold uppercase text-slate-600 block mb-1">Work Quality</label>
+            <select id="review-quality" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400">
+              <option value="Excellent">🌟 Excellent</option>
+              <option value="Good" selected>✅ Good</option>
+              <option value="Average">😐 Average</option>
+              <option value="Poor">👎 Poor</option>
+            </select>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="review-would-recommend" class="w-4 h-4 rounded accent-amber-400">
+          <span class="text-xs text-slate-700 font-medium">I would recommend NagarNazar to others</span>
+        </label>
+      </div>
+      <div class="mt-6 flex gap-3">
+        <button onclick="app.closeReviewModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 rounded-2xl text-sm transition">Skip</button>
+        <button onclick="app.submitReview()" class="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 rounded-2xl shadow-lg text-sm transition flex items-center justify-center gap-2">
+          <i data-lucide="send" class="w-4 h-4"></i> Submit Review
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- REGISTER ORG MODAL -->
   <div id="register-org-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 animate-slideDown">
@@ -716,31 +784,6 @@
       </div>
     </div>
   </div>
-  <!-- RATE RESOLUTION / REVIEW MODAL -->
-<div id="review-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 animate-slideDown">
-    <div class="flex items-start justify-between mb-1">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center"><i data-lucide="star" class="w-5 h-5"></i></div>
-        <div>
-          <h3 class="text-base font-bold text-slate-900" data-i18n="review.title">Rate the Resolution</h3>
-          <p class="text-[11px] text-slate-500" id="review-modal-ticket">CIV-2026-000000</p>
-        </div>
-      </div>
-      <button onclick="app.closeReviewModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
-    </div>
-    <p class="text-xs text-slate-500 mt-2 mb-3" data-i18n="review.subtitle">How satisfied are you with how this civic issue was resolved?</p>
-    <!-- Interactive stars -->
-    <div id="review-modal-stars" class="flex items-center justify-center gap-2 py-2" role="radiogroup" aria-label="Star rating"></div>
-    <p id="review-modal-rating-label" class="text-center text-xs font-bold text-amber-600 h-4 mb-3"></p>
-    <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1" data-i18n="review.optional">Add a review <span class="text-slate-400 font-medium normal-case">(optional)</span></label>
-    <textarea id="review-modal-text" rows="3" maxlength="500" placeholder="Tell us what went well or what could improve..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"></textarea>
-    <div class="mt-5 flex gap-2">
-      <button onclick="app.closeReviewModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs" data-i18n="btn.cancel">Cancel</button>
-      <button onclick="app.submitReview()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md" data-i18n="review.submit">Submit Feedback</button>
-    </div>
-  </div>
-</div>
 
   <!-- MOBILE NAV -->
   <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-slate-200 py-2 px-4 z-40 flex items-center justify-around shadow-lg">
@@ -803,8 +846,8 @@ const TRANSLATIONS={
     'wizard.step1':'Live Photo','wizard.step2':'GPS Location','wizard.step3':'Details','wizard.step4':'Submit',
     'dup.title':'Similar complaint already filed nearby!','dup.desc':'Your neighbour already reported this type of issue. Consider tracking it instead.','dup.dismiss':'My issue is at a different spot — continue filing',
     'cam.live_badge':'Live Verification Feature','cam.title':'Capture Live Photo of the Issue','cam.subtitle':'A live photo helps authorities instantly authenticate the problem.',
-    'cam.placeholder_title':'Camera is ready','cam.placeholder_sub':'Tap below to open live camera stream',
-    'cam.open_live':'Open Live Camera Stream',
+    'cam.placeholder_title':'Camera is ready','cam.placeholder_sub':'Tap below to open live camera or snap via phone',
+    'cam.open_live':'Open Live Camera Stream','cam.snap_phone':'Snap via Phone Camera',
     'cam.snap_now':'Snap Photo Now','cam.retake':'Retake','cam.next':'Next: Location',
     'cam.pc_hint':'PC testing?','cam.load_sample':'Load Sample Civic Photo',
     'gps.badge':'Precise Location','gps.title':'Confirm Location on Map','gps.subtitle':'GPS detected. Drag the marker to adjust.',
@@ -844,7 +887,7 @@ const TRANSLATIONS={
     'landing.citizen_desc':'गड्ढा, कचरे का ढेर, पाइप लीक, या टूटी स्ट्रीटलाइट देखी? 60 सेकंड में लाइव फोटो लें और रिपोर्ट करें।',
     'landing.feat1':'GPS वॉटरमार्क के साथ लाइव कैमरा कैप्चर','landing.feat2':'पड़ोस अलर्ट — जानें क्या पहले से रिपोर्ट हो चुका है','landing.feat3':'डुप्लीकेट रोकथाम — एक ही समस्या दोबारा न भेजें',
     'landing.muni_title':'मैं नगरपालिका / प्राधिकरण हूं',
-    'landing.muni_desc':'नगर निगम, PWD, कचरा विभाग, ज�� बोर्ड, NGO और RWA के लिए — शिकायतें संभालें, फील्ड टीम भेजें, समाधान प्रमाण अपलोड करें।',
+    'landing.muni_desc':'नगर निगम, PWD, कचरा विभाग, जल बोर्ड, NGO और RWA के लिए — शिकायतें संभालें, फील्ड टीम भेजें, समाधान प्रमाण अपलोड करें।',
     'landing.mfeat1':'GIS ऑपरेशनल कमांड और क्षेत्र आधारित ट्रिएज','landing.mfeat2':'फील्ड टीम तैनाती और SLA गवर्नेंस','landing.mfeat3':'समाधान के बाद फोटो अपलोड करें',
     'landing.citizen_btn':'नागरिक के रूप में लॉगिन करें','landing.muni_btn':'नगरपालिका के रूप में लॉगिन करें',
     'landing.track_label':'पहले से शिकायत की? ID से ट्रैक करें','landing.track_btn':'ट्रैक करें',
@@ -878,8 +921,8 @@ const TRANSLATIONS={
     'wizard.step1':'लाइव फोटो','wizard.step2':'GPS स्थान','wizard.step3':'विवरण','wizard.step4':'जमा करें',
     'dup.title':'पास में पहले से ऐसी शिकायत दर्ज है!','dup.desc':'आपके पड़ोसी ने पहले से यह समस्या रिपोर्ट की है। उसे ट्रैक करें।','dup.dismiss':'मेरी समस्या अलग जगह है — जारी रखें',
     'cam.live_badge':'लाइव सत्यापन सुविधा','cam.title':'समस्या की लाइव फोटो लें','cam.subtitle':'लाइव फोटो से अधिकारी समस्या तुरंत सत्यापित कर सकते हैं।',
-    'cam.placeholder_title':'कैमरा तैयार है','cam.placeholder_sub':'नीचे टैप करें — लाइव कैमरा स्ट्रीम खोलें',
-    'cam.open_live':'लाइव कैमरा स्ट्रीम खोलें',
+    'cam.placeholder_title':'कैमरा तैयार है','cam.placeholder_sub':'नीचे टैप करें — लाइव कैमरा खोलें या फोन से फोटो लें',
+    'cam.open_live':'लाइव कैमरा स्ट्रीम खोलें','cam.snap_phone':'फोन कैमरे से फोटो लें',
     'cam.snap_now':'अभी फोटो लें','cam.retake':'दोबारा लें','cam.next':'अगला: स्थान',
     'cam.pc_hint':'PC पर टेस्ट कर रहे हैं?','cam.load_sample':'नमूना फोटो लोड करें',
     'gps.badge':'सटीक स्थान','gps.title':'मैप पर स्थान की पुष्टि करें','gps.subtitle':'GPS मिल गया। सटीक जगह के लिए मार्कर खींचें।',
@@ -1380,14 +1423,74 @@ const app={
     if(complaint.photoAfter){if(pa){pa.src=complaint.photoAfter;pa.classList.remove('hidden');}if(pap)pap.classList.add('hidden');if(eb){eb.innerText='Proof Verified';eb.className='text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded';}}
     else{if(pa)pa.classList.add('hidden');if(pap)pap.classList.remove('hidden');if(eb){eb.innerText='Pending';eb.className='text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded';}}
     window.mapModule.initDetailMiniMap(complaint.location.lat,complaint.location.lng);this.renderTimelineFlow(complaint.timeline);
-    const ss=document.getElementById('action-status-select');if(ss)ss.value=complaint.status;
+    // Show rating card for Resolved/Closed complaints
+    const ratingCard=document.getElementById('citizen-rating-card');
+    if(ratingCard){
+      const isResolved=complaint.status==='Resolved'||complaint.status==='Closed';
+      ratingCard.classList.toggle('hidden',!isResolved);
+      if(isResolved){
+        const savedRating=complaint.citizenRating||0;
+        document.querySelectorAll('.star-rate-btn').forEach((b,i)=>{b.style.color=i<savedRating?'#f59e0b':'#cbd5e1';});
+        const lbl=document.getElementById('detail-star-label');
+        const rated=document.getElementById('detail-already-rated');
+        const labels=['Tap a star to rate','😞 Poor','😕 Below Average','😊 Average','👍 Good','🤩 Excellent!'];
+        if(savedRating>0){if(lbl){lbl.innerText=labels[savedRating];lbl.classList.remove('text-slate-400');lbl.classList.add('text-amber-600');}if(rated)rated.classList.remove('hidden');}
+        else{if(lbl){lbl.innerText='Tap a star to rate';lbl.classList.add('text-slate-400');lbl.classList.remove('text-amber-600');}if(rated)rated.classList.add('hidden');}
+      }
+    }
     if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
     window.scrollTo({top:0,behavior:'smooth'});
   },
   renderTimelineFlow(timeline){const c=document.getElementById('detail-timeline-flow');if(!c)return;c.innerHTML=timeline.map(event=>{const color=window.mapModule.statusColors[event.status]?.bg||'#4f46e5';return '<div class="relative pl-6 pb-2"><span class="absolute -left-[7px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm" style="background-color:'+color+'"></span><div class="flex items-center justify-between"><span class="font-bold text-xs text-slate-900">'+event.status+'</span><span class="text-[10px] text-slate-400 font-mono">'+event.timestamp+'</span></div><p class="text-[11px] font-semibold text-indigo-700 mt-0.5">'+event.actor+'</p><p class="text-xs text-slate-600 mt-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-snug">'+event.note+'</p></div>';}).join('');},
   navigateBackFromDetails(){this.navigateTo(this.previousView||'citizen-dashboard');},
 
-  
+  rateComplaint(id,val){
+    if(!id)return;
+    this._pendingRating=val;this._ratingComplaintId=id;
+    const labels=['','😞 Poor','😕 Below Average','😊 Average','👍 Good','🤩 Excellent!'];
+    // Highlight stars
+    document.querySelectorAll('.star-rate-btn').forEach((b,i)=>{b.style.color=i<val?'#f59e0b':'#cbd5e1';});
+    const lbl=document.getElementById('detail-star-label');
+    if(lbl){lbl.innerText=labels[val];lbl.classList.remove('text-slate-400');lbl.classList.add('text-amber-600');}
+    // Open review modal after short delay
+    setTimeout(()=>{
+      const modal=document.getElementById('review-modal');if(!modal)return;
+      const msd=document.getElementById('modal-stars-display');
+      if(msd){msd.innerHTML='';for(let i=1;i<=5;i++){const s=document.createElement('span');s.innerText='★';s.style.color=i<=val?'#f59e0b':'#cbd5e1';s.style.fontSize='1.5rem';msd.appendChild(s);}}
+      const rti=document.getElementById('review-text-input');if(rti)rti.value='';
+      modal.classList.remove('hidden');
+      if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+    },400);
+  },
+
+  closeReviewModal(){
+    const modal=document.getElementById('review-modal');if(modal)modal.classList.add('hidden');
+    // Save rating even if review is skipped
+    if(this._pendingRating&&this._ratingComplaintId){
+      const c=window.dataStore.getComplaintById(this._ratingComplaintId);
+      if(c){c.citizenRating=this._pendingRating;window.dataStore.saveComplaints();}
+      const rated=document.getElementById('detail-already-rated');if(rated)rated.classList.remove('hidden');
+      this.showToast('Rating saved! ⭐'.repeat(this._pendingRating>3?2:1),'success');
+    }
+    this._pendingRating=null;this._ratingComplaintId=null;
+  },
+
+  submitReview(){
+    const modal=document.getElementById('review-modal');
+    const reviewText=document.getElementById('review-text-input')?.value.trim();
+    const speed=document.getElementById('review-speed')?.value;
+    const quality=document.getElementById('review-quality')?.value;
+    const recommend=document.getElementById('review-would-recommend')?.checked;
+    if(this._ratingComplaintId&&this._pendingRating){
+      const c=window.dataStore.getComplaintById(this._ratingComplaintId);
+      if(c){c.citizenRating=this._pendingRating;c.citizenReview={text:reviewText,speed,quality,recommend,submittedAt:new Date().toISOString()};window.dataStore.saveComplaints();}
+      const rated=document.getElementById('detail-already-rated');if(rated)rated.classList.remove('hidden');
+    }
+    if(modal)modal.classList.add('hidden');
+    this.showToast('Review submitted! Thank you 🙏','success');
+    this._pendingRating=null;this._ratingComplaintId=null;
+  },
+
   trackTicketById(inputId){const input=document.getElementById(inputId||'home-track-input');const id=input?input.value.trim():'';if(!id){this.showToast('Please enter a Complaint ID.','warning');return;}const complaint=window.dataStore.getComplaintById(id);if(complaint){this.showToast('Found: '+complaint.id,'success');this.viewComplaintDetails(complaint.id);}else this.showToast('Not found. Try: CIV-2026-000101','error');},
 
   renderCitizenDashboard(){
@@ -1402,11 +1505,26 @@ const app={
     const filter=document.getElementById('citizen-filter-status')?.value||'all';
     const container=document.getElementById('citizen-complaints-list');if(!container)return;
     const session=authModule.session||{name:'Rahul Sharma',email:'citizen@demo.com'};
-    
     let complaints=window.dataStore.getAllComplaints().filter(c=>c.citizenContact===session.email||c.citizenName===session.name);
     if(filter!=='all')complaints=complaints.filter(c=>c.status===filter);
     if(complaints.length===0){container.innerHTML='<div class="p-8 text-center text-slate-400"><i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 text-slate-200"></i><p class="text-sm font-semibold">No complaints yet</p></div>';if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}return;}
-    container.innerHTML=complaints.map(c=>{const color=window.mapModule.statusColors[c.status]?.bg||'#4f46e5';return '<div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer" onclick="app.viewComplaintDetails(\''+c.id+'\')"><div class="flex items-start gap-4"><div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200"><img src="'+c.photoBefore+'" class="w-full h-full object-cover" alt=""/></div><div><div class="flex items-center gap-2 flex-wrap"><span class="font-mono text-xs font-bold text-indigo-600">'+c.id+'</span><span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color:'+color+'">'+c.status+'</span></div><h4 class="font-bold text-sm text-slate-900 mt-1">'+c.title+'</h4><p class="text-xs text-slate-500 mt-0.5">📍 '+c.location.address+'</p></div></div><button class="text-xs font-bold text-indigo-600 hover:text-indigo-800 whitespace-nowrap">'+langModule.t('view.btn')+'</button></div>';}).join('');
+    container.innerHTML=complaints.map(c=>{
+      const color=window.mapModule.statusColors[c.status]?.bg||'#4f46e5';
+      const isRes=c.status==='Resolved'||c.status==='Closed';
+      const r=c.citizenRating||0;
+      const stars=isRes?'<div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:2px;margin-top:8px;padding:5px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;width:fit-content">'
+        +[1,2,3,4,5].map(i=>'<span onclick="app.rateComplaint(\''+c.id+'\','+i+')" style="font-size:22px;line-height:1;cursor:pointer;color:'+(i<=r?'#f59e0b':'#d1d5db')+'" title="'+i+' star">★</span>').join('')
+        +(r>0?'<span style="font-size:10px;font-weight:700;color:#d97706;margin-left:6px;">'+r+'/5 rated</span>':'<span style="font-size:10px;color:#9ca3af;margin-left:6px;">Rate resolution</span>')
+        +'</div>':'';
+      return '<div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer" onclick="app.viewComplaintDetails(\''+c.id+'\')">'
+        +'<div class="flex items-start gap-4"><div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200"><img src="'+c.photoBefore+'" class="w-full h-full object-cover" alt=""/></div>'
+        +'<div><div class="flex items-center gap-2 flex-wrap"><span class="font-mono text-xs font-bold text-indigo-600">'+c.id+'</span>'
+        +'<span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color:'+color+'">'+c.status+'</span></div>'
+        +'<h4 class="font-bold text-sm text-slate-900 mt-1">'+c.title+'</h4>'
+        +'<p class="text-xs text-slate-500 mt-0.5">📍 '+c.location.address+'</p>'
+        +stars+'</div></div>'
+        +'<button class="text-xs font-bold text-indigo-600 hover:text-indigo-800 whitespace-nowrap">'+langModule.t('view.btn')+'</button></div>';
+    }).join('');
     if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
   },
   renderAuthorityDashboard(){
