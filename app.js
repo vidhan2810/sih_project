@@ -126,20 +126,25 @@ const app = {
     }
   },
 
-  renderStarRating(c){
-  if(c.status!=='Resolved'&&c.status!=='Closed')return '';
-  const rating=c.rating||0;const rated=rating>0;
-  let stars='';
-  for(let i=1;i<=5;i++){
-    const filled=i<=rating;
-    stars+='<button type="button" aria-label="Rate '+i+' star'+(i>1?'s':'')+'" onclick="event.stopPropagation();app.rateComplaint(\''+c.id+'\','+i+')" class="p-0.5 leading-none transition-transform hover:scale-125 focus:outline-none">'
-      +'<i data-lucide="star" class="w-4 h-4 '+(filled?'text-amber-400 fill-amber-400':'text-slate-300')+'"></i></button>';
-  }
-  const label=rated
-    ? '<span class="text-[10px] font-bold text-amber-600 ml-0.5">'+rating+'.0</span>'
-    : '<span class="text-[10px] font-semibold text-slate-400 ml-0.5">Rate</span>';
-  return '<div class="flex items-center gap-0.5" title="'+(rated?'You rated this '+rating+'/5':'Tap a star to rate this resolution')+'">'+stars+label+'</div>';
-},
+  renderStarRating(c) {
+    if (c.status !== 'Resolved' && c.status !== 'Closed') return '';
+    const rating = c.rating || 0;
+    const rated = rating > 0;
+    let stars = '';
+    
+    for (let i = 1; i <= 5; i++) {
+      const filled = i <= rating;
+      stars += `<button type="button" aria-label="Rate ${i} star" onclick="app.rateComplaint('${c.id}', ${i})" class="p-0.5 leading-none transition-transform hover:scale-125 focus:outline-none">
+        <i data-lucide="star" class="w-4 h-4 ${filled ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}"></i>
+      </button>`;
+    }
+    
+    const label = rated
+      ? `<span class="text-[10px] font-bold text-amber-600 ml-1">${rating}.0</span>`
+      : `<span class="text-[10px] font-semibold text-slate-400 ml-1">Rate Resolution</span>`;
+      
+    return `<div class="flex items-center gap-0.5">${stars}${label}</div>`;
+  },
 rateComplaint(id,stars){
   window.dataStore.setRating(id,stars);
   this.renderCitizenComplaints();
@@ -203,68 +208,72 @@ submitReview(){
   },
 
 renderCitizenComplaints() {
-  const filter = document.getElementById('citizen-filter-status')?.value || 'all';
-  const container = document.getElementById('citizen-complaints-list');
-  if (!container) return;
+    const filter = document.getElementById('citizen-filter-status')?.value || 'all';
+    const container = document.getElementById('citizen-complaints-list');
+    if (!container) return;
 
-  let complaints = window.dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
+    let complaints = window.dataStore.getAllComplaints().filter(c => c.citizenName === 'Rahul Sharma' || c.citizenContact === 'rahul.s@example.com');
 
-  if (filter !== 'all') {
-    complaints = complaints.filter(c => c.status === filter);
-  }
+    if (filter !== 'all') {
+      complaints = complaints.filter(c => c.status === filter);
+    }
 
-  if (complaints.length === 0) {
-    container.innerHTML = `
-      <div class="p-8 text-center text-slate-400">
-        <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-        <p class="text-sm font-semibold">No complaints found under this filter</p>
-      </div>
-    `;
-    if (window.lucide) lucide.createIcons();
-    return;
-  }
+    if (complaints.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center text-slate-400">
+          <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+          <p class="text-sm font-semibold">No complaints found under this filter</p>
+        </div>
+      `;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+      return;
+    }
 
-  container.innerHTML = complaints.map(c => {
-    const color = window.mapModule.statusColors[c.status]?.bg || '#3b82f6';
-    // Render the star rating widget if resolved/closed
-    const ratingWidget = this.renderStarRating ? this.renderStarRating(c) : '';
+    container.innerHTML = complaints.map(c => {
+      const color = window.mapModule.statusColors[c.status]?.bg || '#3b82f6';
+      
+      // Generate the rating widget (will show stars if Resolved/Closed, or empty string otherwise)
+      const ratingWidget = (c.status === 'Resolved' || c.status === 'Closed') ? this.renderStarRating(c) : '';
 
-    return `
-      <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer" onclick="app.viewComplaintDetails('${c.id}')">
-        <div class="flex items-start gap-4">
-          <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 shadow-sm relative">
-            <img src="${c.photoBefore}" class="w-full h-full object-cover" alt="Complaint photo"/>
-            <span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/70 text-white text-[8px] font-mono">LIVE</span>
+      return `
+        <div class="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50 transition cursor-pointer border-b border-slate-100" onclick="app.viewComplaintDetails('${c.id}')">
+          <div class="flex items-start gap-4">
+            <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 shadow-sm relative">
+              <img src="${c.photoBefore}" class="w-full h-full object-cover" alt="Complaint photo"/>
+              <span class="absolute bottom-1 right-1 px-1 py-0.2 rounded bg-black/70 text-white text-[8px] font-mono">LIVE</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold text-blue-600">${c.id}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color: ${color}">${c.status}</span>
+                <span class="text-[10px] text-slate-400 font-semibold">• ${c.categoryName}</span>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 mt-1">${c.title}</h4>
+              <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                📍 ${c.location.address}
+              </p>
+              
+              <!-- Star Rating Container (Stops click from opening detail view) -->
+              <div class="mt-2" onclick="event.stopPropagation()">
+                ${ratingWidget}
+              </div>
+            </div>
           </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-mono text-xs font-bold text-blue-600">${c.id}</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase" style="background-color: ${color}">${c.status}</span>
-              <span class="text-[10px] text-slate-400 font-semibold">• ${c.categoryName}</span>
-            </div>
-            <h4 class="font-bold text-sm text-slate-900 mt-1">${c.title}</h4>
-            <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-              📍 ${c.location.address}
-            </p>
-            <!-- Rating widget injected here -->
-            <div class="mt-2" onclick="event.stopPropagation()">
-              ${ratingWidget}
-            </div>
+          <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
+            <span class="text-[11px] text-slate-400">Updated: ${new Date(c.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+            <button class="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
+              <span>Track Progress</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
           </div>
         </div>
-        <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-          <span class="text-[11px] text-slate-400">Updated: ${new Date(c.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-          <button class="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800">
-            <span>Track Progress</span>
-            <i data-lucide="chevron-right" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
 
-  if (window.lucide) lucide.createIcons();
-},
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  },
 
   trackTicketById(customInputId) {
     const input = document.getElementById(customInputId || 'home-track-input');
