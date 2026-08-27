@@ -426,7 +426,7 @@
           <div id="camera-placeholder" class="flex flex-col items-center text-center p-6 text-slate-400">
             <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-indigo-400 mb-3 animate-pulse"><i data-lucide="camera" class="w-8 h-8"></i></div>
             <p class="text-sm font-semibold text-slate-300" data-i18n="cam.placeholder_title">Camera is ready</p>
-            <p class="text-xs text-slate-500 mt-1" data-i18n="cam.placeholder_sub">Tap below to open live camera or snap via phone</p>
+            <p class="text-xs text-slate-500 mt-1" data-i18n="cam.placeholder_sub">Tap below to open live camera stream</p>
           </div>
 
           <!-- Flip Camera Overlay -->
@@ -443,14 +443,10 @@
 
         <!-- Camera Buttons -->
         <div class="max-w-md mx-auto mt-6 flex flex-col gap-3">
-          <div id="camera-btn-group-init" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <button onclick="cameraModule.startCamera()" class="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs transition active:scale-95">
+          <div id="camera-btn-group-init" class="w-full">
+            <button onclick="cameraModule.startCamera()" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs transition active:scale-95">
               <i data-lucide="video" class="w-4 h-4"></i><span data-i18n="cam.open_live">Open Live Camera Stream</span>
             </button>
-            <label class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg text-xs cursor-pointer transition active:scale-95">
-              <i data-lucide="camera" class="w-4 h-4"></i><span data-i18n="cam.snap_phone">Snap via Phone Camera</span>
-              <input type="file" accept="image/*" capture="environment" class="hidden" onchange="cameraModule.handleFileUpload(event)">
-            </label>
           </div>
           <div id="camera-btn-group-streaming" class="hidden flex items-center justify-center gap-4">
             <button onclick="cameraModule.captureSnapshot()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl transition transform active:scale-95">
@@ -827,8 +823,8 @@ const TRANSLATIONS={
     'wizard.step1':'Live Photo','wizard.step2':'GPS Location','wizard.step3':'Details','wizard.step4':'Submit',
     'dup.title':'Similar complaint already filed nearby!','dup.desc':'Your neighbour already reported this type of issue. Consider tracking it instead.','dup.dismiss':'My issue is at a different spot — continue filing',
     'cam.live_badge':'Live Verification Feature','cam.title':'Capture Live Photo of the Issue','cam.subtitle':'A live photo helps authorities instantly authenticate the problem.',
-    'cam.placeholder_title':'Camera is ready','cam.placeholder_sub':'Tap below to open live camera or snap via phone',
-    'cam.open_live':'Open Live Camera Stream','cam.snap_phone':'Snap via Phone Camera',
+    'cam.placeholder_title':'Camera is ready','cam.placeholder_sub':'Tap below to open live camera stream',
+    'cam.open_live':'Open Live Camera Stream',
     'cam.snap_now':'Snap Photo Now','cam.retake':'Retake','cam.next':'Next: Location',
     'cam.pc_hint':'PC testing?','cam.load_sample':'Load Sample Civic Photo',
     'gps.badge':'Precise Location','gps.title':'Confirm Location on Map','gps.subtitle':'GPS detected. Drag the marker to adjust.',
@@ -902,8 +898,8 @@ const TRANSLATIONS={
     'wizard.step1':'लाइव फोटो','wizard.step2':'GPS स्थान','wizard.step3':'विवरण','wizard.step4':'जमा करें',
     'dup.title':'पास में पहले से ऐसी शिकायत दर्ज है!','dup.desc':'आपके पड़ोसी ने पहले से यह समस्या रिपोर्ट की है। उसे ट्रैक करें।','dup.dismiss':'मेरी समस्या अलग जगह है — जारी रखें',
     'cam.live_badge':'लाइव सत्यापन सुविधा','cam.title':'समस्या की लाइव फोटो लें','cam.subtitle':'लाइव फोटो से अधिकारी समस्या तुरंत सत्यापित कर सकते हैं।',
-    'cam.placeholder_title':'कैमरा तैयार है','cam.placeholder_sub':'नीचे टैप करें — लाइव कैमरा खोलें या फोन से फोटो लें',
-    'cam.open_live':'लाइव कैमरा स्ट्रीम खोलें','cam.snap_phone':'फोन कैमरे से फोटो लें',
+    'cam.placeholder_title':'कैमरा तैयार है','cam.placeholder_sub':'नीचे टैप करें — लाइव कैमरा स्ट्रीम खोलें',
+    'cam.open_live':'लाइव कैमरा स्ट्रीम खोलें',
     'cam.snap_now':'अभी फोटो लें','cam.retake':'दोबारा लें','cam.next':'अगला: स्थान',
     'cam.pc_hint':'PC पर टेस्ट कर रहे हैं?','cam.load_sample':'नमूना फोटो लोड करें',
     'gps.badge':'सटीक स्थान','gps.title':'मैप पर स्थान की पुष्टि करें','gps.subtitle':'GPS मिल गया। सटीक जगह के लिए मार्कर खींचें।',
