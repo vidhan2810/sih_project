@@ -163,11 +163,23 @@
             </div>
           </div>
 
-          <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto pt-8 border-t border-white/10 text-left">
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-blue-400">1,482</div><div class="text-xs text-slate-300 mt-1" data-i18n="stat.reported">Grievances Reported</div></div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-emerald-400">1,210</div><div class="text-xs text-slate-300 mt-1" data-i18n="stat.resolved">Resolved with Proof</div></div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-cyan-400">18.4 hrs</div><div class="text-xs text-slate-300 mt-1" data-i18n="stat.sla">Avg SLA Turnaround</div></div>
-            <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur"><div class="text-2xl sm:text-3xl font-extrabold text-amber-400">92.4%</div><div class="text-xs text-slate-300 mt-1" data-i18n="stat.trust">Citizen Trust Rating</div></div>
+          <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-5 max-w-5xl mx-auto pt-8 border-t border-white/10 text-left">
+            <div class="bg-white/5 border border-white/10 p-7 rounded-2xl backdrop-blur hover:bg-white/10 transition">
+              <div class="text-3xl sm:text-4xl font-extrabold text-blue-400" id="stat-reported">0</div>
+              <div class="text-xs text-slate-300 mt-2 font-medium" data-i18n="stat.reported">Grievances Reported</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-7 rounded-2xl backdrop-blur hover:bg-white/10 transition">
+              <div class="text-3xl sm:text-4xl font-extrabold text-emerald-400" id="stat-resolved">0</div>
+              <div class="text-xs text-slate-300 mt-2 font-medium" data-i18n="stat.resolved">Resolved with Proof</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-7 rounded-2xl backdrop-blur hover:bg-white/10 transition">
+              <div class="text-3xl sm:text-4xl font-extrabold text-cyan-400" id="stat-sla">0</div>
+              <div class="text-xs text-slate-300 mt-2 font-medium" data-i18n="stat.sla">Avg SLA Turnaround</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 p-7 rounded-2xl backdrop-blur hover:bg-white/10 transition">
+              <div class="text-3xl sm:text-4xl font-extrabold text-amber-400" id="stat-trust">0</div>
+              <div class="text-xs text-slate-300 mt-2 font-medium" data-i18n="stat.trust">Citizen Trust Rating</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1561,6 +1573,40 @@ const app={
 window.app=app;
 
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>app.init());}else{app.init();}
-  </script>
+  
+// LANDING PAGE STAT COUNTER ANIMATION
+function animateCounter(id,target,suffix,duration){
+  duration=duration||1800;
+  var el=document.getElementById(id);if(!el)return;
+  var isFloat=String(target).indexOf('.')!==-1;
+  var start=null;
+  function step(ts){
+    if(!start)start=ts;
+    var progress=Math.min((ts-start)/duration,1);
+    var eased=1-Math.pow(1-progress,3);
+    var current=isFloat?(eased*target).toFixed(1):Math.round(eased*target).toLocaleString();
+    el.innerText=current+(suffix||'');
+    if(progress<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+function runLandingCounters(){
+  animateCounter('stat-reported',1482,'');
+  animateCounter('stat-resolved',1210,'');
+  animateCounter('stat-sla',18.4,' hrs');
+  animateCounter('stat-trust',92.4,'%');
+}
+(function(){
+  var sec=document.getElementById('view-landing');
+  if(!sec)return;
+  if('IntersectionObserver' in window){
+    var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){runLandingCounters();obs.disconnect();}});},{threshold:0.2});
+    obs.observe(sec);
+  } else {
+    setTimeout(runLandingCounters,500);
+  }
+})();
+
+</script>
 </body>
 </html>
