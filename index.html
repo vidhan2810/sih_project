@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SAARTHI — Civic Issue Reporting &amp; Resolution</title>
+  <title>CivicSAARTHI — Civic Issue Reporting &amp; Resolution</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1512,8 +1512,8 @@ const app={
     const complaints=window.dataStore.getAllComplaints().filter(c=>c.citizenContact===session.email||c.citizenName===session.name);
     const set=(id,val)=>{const el=document.getElementById(id);if(el)el.innerText=val;};
     const tot=complaints.length,res=complaints.filter(c=>c.status==='Resolved'||c.status==='Closed').length,inp=complaints.filter(c=>c.status==='In Progress'||c.status==='Assigned').length,pnd=complaints.filter(c=>c.status==='Submitted'||c.status==='Under Review').length;
-    function kpiCount(id,val){var el=document.getElementById(id);if(!el)return;var s=null;var dur=900;(function step(ts){if(!s)s=ts;var p=Math.min((ts-s)/dur,1),e=1-Math.pow(1-p,3);el.innerText=Math.round(e*val);if(p<1)requestAnimationFrame(step);})(performance.now());}
-    kpiCount('citizen-stat-total',tot);kpiCount('citizen-stat-resolved',res);kpiCount('citizen-stat-inprogress',inp);kpiCount('citizen-stat-pending',pnd);
+    function kpiAnim(id,target){var el=document.getElementById(id);if(!el||!target)return void(el&&(el.innerText=target));el.innerText=0;var start=null,dur=1000;function step(ts){if(!start)start=ts;var p=Math.min((ts-start)/dur,1),ease=1-Math.pow(1-p,3);el.innerText=Math.round(ease*target);if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+    kpiAnim('citizen-stat-total',tot);kpiAnim('citizen-stat-resolved',res);kpiAnim('citizen-stat-inprogress',inp);kpiAnim('citizen-stat-pending',pnd);
     this.renderCitizenComplaints();
   },
   renderCitizenComplaints(){
@@ -1549,7 +1549,7 @@ const app={
       }
       var rightCol=starsHtml
         +'<button onclick="event.stopPropagation();app.viewComplaintDetails(\''+c.id+'\')" style="font-size:12px;font-weight:700;color:#4f46e5;white-space:nowrap;background:none;border:none;cursor:pointer;margin-top:6px;padding:0;">View &rarr;</button>';
-      return '<div style="padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-radius:16px;margin:8px 12px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,0.07);border:1px solid #f1f5f9;cursor:pointer;transition:box-shadow 0.2s;" onclick="app.viewComplaintDetails(\''+c.id+'\')" onmouseover="this.style.boxShadow=\'0 6px 20px rgba(0,0,0,0.12)\'" onmouseout="this.style.boxShadow=\'0 2px 12px rgba(0,0,0,0.07)\'">'
+      return '<div style="padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-radius:16px;margin:8px 12px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,0.10);border:1px solid #e8edf5;cursor:pointer;transition:box-shadow 0.2s;" onclick="app.viewComplaintDetails(\''+c.id+'\')" onmouseover="this.style.boxShadow=\'0 6px 20px rgba(0,0,0,0.12)\'" onmouseout="this.style.boxShadow=\'0 2px 12px rgba(0,0,0,0.07)\'">'
         +'<div style="display:flex;align-items:flex-start;gap:14px;flex:1;min-width:0;">'
         +'<div style="width:60px;height:60px;border-radius:12px;overflow:hidden;flex-shrink:0;border:1px solid #e2e8f0;"><img src="'+c.photoBefore+'" style="width:100%;height:100%;object-fit:cover;" alt=""/></div>'
         +'<div style="flex:1;min-width:0;">'
@@ -1573,10 +1573,44 @@ const app={
     if(window.analyticsModule)window.analyticsModule.renderCharts();this.renderAuthorityQueue();
   },
   renderAuthorityQueue(){
-    const sf=document.getElementById('auth-filter-status')?.value||'all';const pf=document.getElementById('auth-filter-priority')?.value||'all';const tbody=document.getElementById('auth-queue-table-body');if(!tbody)return;
-    let complaints=window.dataStore.getAllComplaints();if(sf!=='all')complaints=complaints.filter(c=>c.status===sf);if(pf!=='all')complaints=complaints.filter(c=>c.priority===pf);
+    var sf=document.getElementById('auth-filter-status')?document.getElementById('auth-filter-status').value:'all';
+    var pf=document.getElementById('auth-filter-priority')?document.getElementById('auth-filter-priority').value:'all';
+    var tbody=document.getElementById('auth-queue-table-body');if(!tbody)return;
+    var complaints=window.dataStore.getAllComplaints();
+    if(sf!=='all')complaints=complaints.filter(function(c){return c.status===sf;});
+    if(pf!=='all')complaints=complaints.filter(function(c){return c.priority===pf;});
     if(complaints.length===0){tbody.innerHTML='<tr><td colspan="7" class="py-8 text-center text-slate-400">No records found.</td></tr>';return;}
-    tbody.innerHTML=complaints.map(c=>{const color=window.mapModule.statusColors[c.status]?.bg||'#4f46e5';const pc=c.priority==='High'?'text-rose-600 bg-rose-50':c.priority==='Medium'?'text-amber-600 bg-amber-50':'text-slate-600 bg-slate-50';return '<tr class="hover:bg-slate-50 transition"><td class="py-3 px-4 font-mono font-bold text-indigo-600 text-xs">'+c.id+'</td><td class="py-3 px-4"><img src="'+c.photoBefore+'" class="w-10 h-10 rounded-lg object-cover border border-slate-200" alt=""/></td><td class="py-3 px-4 max-w-xs"><span class="text-[10px] uppercase font-bold text-slate-400 block">'+c.categoryName+'</span><span class="font-bold text-slate-800 text-xs">'+c.title+'</span></td><td class="py-3 px-4 text-[11px] text-slate-500 max-w-xs truncate">'+c.location.address+'</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold '+pc+'">'+c.priority+'</span></td><td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style="background-color:'+color+'">'+c.status+'</span></td><td class="py-3 px-4 text-right"><button onclick="app.viewComplaintDetails(\''+c.id+'\')" class="bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 font-bold px-3 py-1.5 rounded-lg transition text-[11px]">'+langModule.t('manage.btn')+'</button></td></tr>';}).join('');
+    tbody.innerHTML=complaints.map(function(c){
+      var color=(window.mapModule.statusColors[c.status]&&window.mapModule.statusColors[c.status].bg)||'#4f46e5';
+      var pc=c.priority==='High'?'text-rose-600 bg-rose-50':c.priority==='Medium'?'text-amber-600 bg-amber-50':'text-slate-600 bg-slate-50';
+      var uploadId='upload-'+c.id.replace(/-/g,'_');
+      return '<tr class="hover:bg-slate-50 transition">'
+        +'<td class="py-3 px-4 font-mono font-bold text-indigo-600 text-xs">'+c.id+'</td>'
+        +'<td class="py-3 px-4"><img src="'+c.photoBefore+'" class="w-10 h-10 rounded-lg object-cover border border-slate-200" alt=""/></td>'
+        +'<td class="py-3 px-4 max-w-xs"><span class="text-[10px] uppercase font-bold text-slate-400 block">'+c.categoryName+'</span><span class="font-bold text-slate-800 text-xs">'+c.title+'</span></td>'
+        +'<td class="py-3 px-4 text-[11px] text-slate-500 max-w-xs truncate">'+c.location.address+'</td>'
+        +'<td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold '+pc+'">'+c.priority+'</span></td>'
+        +'<td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style="background-color:'+color+'">'+c.status+'</span></td>'
+        +'<td class="py-3 px-4 text-right">'
+        +'<div class="flex items-center justify-end gap-2">'
+        +'<label title="Upload proof photo" class="cursor-pointer flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold px-3 py-1.5 rounded-lg transition text-[11px]" onclick="app.viewComplaintDetails(\''+c.id+'\')">'
+        +'<i data-lucide="camera" class="w-3.5 h-3.5"></i> Upload'
+        +'<input type="file" accept="image/*" class="hidden" id="'+uploadId+'" onchange="app.handleQueueUpload(event,\''+c.id+'\')">'
+        +'</label>'
+        +'</div>'
+        +'</td>'
+        +'</tr>';
+    }).join('');
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+  handleQueueUpload(event,complaintId){
+    var file=event.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var c=window.dataStore.getComplaintById(complaintId);
+      if(c){c.photoAfter=e.target.result;window.dataStore.saveComplaints();app.showToast('Proof photo uploaded for '+complaintId,'success');app.renderAuthorityQueue();}
+    };
+    reader.readAsDataURL(file);
   },
   handleEvidenceUpload(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(e)=>{this.selectedEvidencePhoto=e.target.result;this.showToast('Evidence photo ready!','success');};reader.readAsDataURL(file);},
   quickAddPresetEvidence(){this.selectedEvidencePhoto='https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80';this.showToast('Sample proof attached.','info');},
