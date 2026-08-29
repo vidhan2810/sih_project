@@ -52,11 +52,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center gap-3 cursor-pointer" onclick="app.navigateTo('login')">
-          <img src="logo.jpg" alt="SAARTHI Logo" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-indigo-500/20" onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='flex'">
+          <img src="logo.jpg" alt="CivicSAARTHI Logo" class="w-10 h-10 rounded-xl object-cover shadow-md shadow-indigo-500/20" onerror="this.style.display='none';document.getElementById('nav-logo-fallback').style.display='flex'">
           <div id="nav-logo-fallback" style="display:none" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-700 via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-md"><i data-lucide="eye" class="w-6 h-6"></i></div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-extrabold text-xl tracking-tight text-slate-900">SAAR<span class="text-indigo-600">THI</span></span>
+              <span class="font-extrabold text-xl tracking-tight text-slate-900">Civic<span class="text-indigo-600">CivicSAARTHI</span></span>
               <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">GovTech</span>
             </div>
             <p class="text-xs text-slate-500 hidden sm:block" data-i18n="nav.tagline">Your city sees all, thanks to you.</p>
@@ -204,11 +204,11 @@
         <div class="login-left text-white">
           <!-- Logo -->
           <div class="relative z-10 flex flex-col items-center text-center max-w-sm">
-            <img src="blob:https://gemini.google.com/2f8030fb-019e-4fea-9713-90fe371625f3" alt="SAARTHI Logo" class="w-24 h-24 rounded-3xl object-cover shadow-2xl shadow-black/30 mb-5 ring-4 ring-white/20" onerror="this.style.display='none';document.getElementById('login-logo-fallback').style.display='flex'">
+            <img src="logo.jpg" alt="CivicSAARTHI Logo" class="w-24 h-24 rounded-3xl object-cover shadow-2xl shadow-black/30 mb-5 ring-4 ring-white/20" onerror="this.style.display='none';document.getElementById('login-logo-fallback').style.display='flex'">
             <div id="login-logo-fallback" style="display:none" class="w-24 h-24 rounded-3xl bg-white/20 flex items-center justify-center mb-5 ring-4 ring-white/20">
               <i data-lucide="eye" class="w-12 h-12 text-white"></i>
             </div>
-            <h1 class="text-4xl font-extrabold tracking-tight">Civic<span class="text-cyan-400">SAARTHI</span></h1>
+            <h1 class="text-4xl font-extrabold tracking-tight">Civic<span class="text-cyan-400">CivicSAARTHI</span></h1>
             <p class="text-blue-200 text-sm mt-1 font-medium" data-i18n="nav.tagline">Your city sees all, thanks to you.</p>
             <div class="mt-8 space-y-4 text-left w-full">
               <div class="flex items-start gap-3 bg-white/15 border border-white/25 rounded-2xl p-4 shadow-lg shadow-black/20">
@@ -231,7 +231,7 @@
             <div class="mt-8 flex items-center gap-3 text-xs text-blue-300">
               <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span data-i18n="login.live">Live Platform</span></span>
               <span>•</span><span>India GovTech 2026</span>
-              <span>•</span><span data-i18n="login.complaints">1,482+ Complaints</span>
+              <span>•</span><span <!-- stats injected -->
             </div>
           </div>
         </div>
@@ -722,6 +722,78 @@
       </div>
     </section>
 
+  
+  <!-- MUNICIPALITY LIVE CAMERA MODAL -->
+  <div id="muni-cam-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-5 animate-slideDown">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+            <i data-lucide="camera" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Upload Proof Photo</h3>
+            <p class="text-[10px] text-slate-400" id="muni-cam-complaint-label">Complaint ID</p>
+          </div>
+        </div>
+        <button onclick="app.closeMuniCamera()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Camera viewport -->
+      <div class="relative bg-black rounded-2xl overflow-hidden aspect-video mb-4 border border-slate-700">
+        <video id="muni-cam-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+        <img id="muni-cam-preview" class="w-full h-full object-cover hidden" alt="Captured proof"/>
+        <canvas id="muni-cam-canvas" class="hidden"></canvas>
+
+        <!-- REC overlay -->
+        <div id="muni-cam-rec-overlay" class="hidden absolute top-3 left-3 bg-black/70 text-white font-mono text-[11px] px-2.5 py-1.5 rounded-lg flex items-center gap-2 z-10">
+          <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+          <span class="text-red-400 font-bold text-[10px]">LIVE</span>
+          <span id="muni-cam-time" class="text-white">--:--:--</span>
+        </div>
+
+        <!-- Placeholder -->
+        <div id="muni-cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-slate-500">
+          <div class="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center mb-3">
+            <i data-lucide="camera" class="w-7 h-7 text-emerald-400"></i>
+          </div>
+          <p class="text-sm font-semibold text-slate-300">Ready to capture proof</p>
+          <p class="text-xs text-slate-500 mt-1">Use live camera or upload from device</p>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div id="muni-cam-btns-init" class="grid grid-cols-2 gap-3 mb-3">
+        <button onclick="app.startMuniCamera()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition">
+          <i data-lucide="video" class="w-4 h-4"></i> Open Live Camera
+        </button>
+        <label class="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl text-xs cursor-pointer transition">
+          <i data-lucide="upload" class="w-4 h-4"></i> Upload from Device
+          <input type="file" accept="image/*" class="hidden" onchange="app.handleMuniFileUpload(event)">
+        </label>
+      </div>
+      <div id="muni-cam-btns-streaming" class="hidden flex items-center justify-center gap-3 mb-3">
+        <button onclick="app.captureMuniPhoto()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold px-8 py-3 rounded-xl text-sm transition">
+          <i data-lucide="aperture" class="w-5 h-5"></i> Snap Proof Photo
+        </button>
+      </div>
+      <div id="muni-cam-btns-preview" class="hidden grid grid-cols-2 gap-3 mb-3">
+        <button onclick="app.retakeMuniPhoto()" class="flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 rounded-xl text-xs transition">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Retake
+        </button>
+        <button onclick="app.saveMuniProofPhoto()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs shadow-lg transition">
+          <i data-lucide="check-circle" class="w-4 h-4"></i> Save as Proof
+        </button>
+      </div>
+      <button onclick="app.closeMuniCamera()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-xs transition">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+
   </main>
 
   <!-- ===== REVIEW POPUP MODAL ===== -->
@@ -816,7 +888,7 @@ const TRANSLATIONS={
     'nav.home':'Home','nav.dashboard':'My Dashboard','nav.neighbourhood':'Neighbourhood',
     'nav.map':'Live Map','nav.logout':'Logout','nav.citizen_login':'Login as Citizen',
     'nav.muni_login':'Municipality Login','nav.report':'Report Issue','nav.portal':'Portal','nav.alerts':'Alerts',
-    'landing.welcome':'Welcome to SAARTHI',
+    'landing.welcome':'Welcome to CivicSAARTHI',
     'landing.title':'What are you?','landing.subtitle':'A Citizen or the Municipality?',
     'landing.desc':'Select your portal to report neighbourhood issues with live camera proof, or manage civic grievances as an authorized department.',
     'landing.portal_a':'Portal A • Citizen','landing.portal_b':'Portal B • Municipality',
@@ -830,7 +902,7 @@ const TRANSLATIONS={
     'landing.track_label':'Already filed? Track by ID','landing.track_btn':'Track',
     'landing.register_dept':'Register Department / NGO',
     'stat.reported':'Grievances Reported','stat.resolved':'Resolved with Proof','stat.sla':'Avg SLA Turnaround','stat.trust':'Citizen Trust Rating',
-    'howit.label':'The SAARTHI Workflow','howit.title':'How Complaints Reach Resolution',
+    'howit.label':'The CivicSAARTHI Workflow','howit.title':'How Complaints Reach Resolution',
     'step1.title':'1. Snap Live Photo','step1.desc':'Open the device camera. Capture real-time photo with live GPS & timestamp.',
     'step2.title':'2. Auto-Detect GPS','step2.desc':'Accurate coordinates pinned on the interactive map with duplicate detection.',
     'step3.title':'3. Auto-Routing','step3.desc':'Complaint routed automatically to the correct Municipal department or NGO.',
@@ -878,7 +950,7 @@ const TRANSLATIONS={
     'queue.title':'Operational Complaint Queue','queue.subtitle':'Filter, prioritize, and dispatch field crews',
     'chart.category':'By Category','chart.status':'Status Distribution','chart.velocity':'7-Day Resolution',
     'table.ticket':'Ticket','table.photo':'Photo','table.title':'Category & Title','table.location':'Location','table.priority':'Priority','table.status':'Status','table.action':'Action',
-    'map.title':'Live SAARTHI Civic Map','map.subtitle':'Real-time view of all reported issues and resolution status',
+    'map.title':'Live CivicSAARTHI Civic Map','map.subtitle':'Real-time view of all reported issues and resolution status',
     'legend.new':'New','legend.review':'Under Review','legend.inprogress':'In Progress','legend.resolved':'Resolved',
     'org.title':'Register Resolution Body / NGO','org.name':'Organization Name *','org.type':'Type *','org.zone':'Operational Zone','org.lead':'Lead Officer','org.phone':'Phone','org.submit':'Submit & Verify',
     'btn.back':'Back','btn.cancel':'Cancel',
@@ -1030,7 +1102,7 @@ const CIVIC_CATEGORIES=[
 ];
 
 const INITIAL_COMPLAINTS=[
-  {id:'CIV-2026-000101',title:'Hazardous deep crater pothole near Metro Gate 3',category:'potholes',categoryName:'Roads & Potholes',description:'A deep 2.5-foot crater after the monsoon rains.',status:'In Progress',priority:'High',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'PWD & Road Works',location:{lat:28.6145,lng:77.2088,address:'Near Metro Gate 3, Ring Road, Sector 14'},photoBefore:'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-19T08:30:00Z',updatedAt:'2026-08-20T09:15:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 19, 2026, 08:30 AM',note:'Issue reported via SAARTHI with live camera.'},{status:'In Progress',actor:'Field Supervisor Anil Kumar',timestamp:'Aug 20, 2026, 09:15 AM',note:'Cold-mix patching team deployed.'}]},
+  {id:'CIV-2026-000101',title:'Hazardous deep crater pothole near Metro Gate 3',category:'potholes',categoryName:'Roads & Potholes',description:'A deep 2.5-foot crater after the monsoon rains.',status:'In Progress',priority:'High',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'PWD & Road Works',location:{lat:28.6145,lng:77.2088,address:'Near Metro Gate 3, Ring Road, Sector 14'},photoBefore:'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-19T08:30:00Z',updatedAt:'2026-08-20T09:15:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 19, 2026, 08:30 AM',note:'Issue reported via CivicSAARTHI with live camera.'},{status:'In Progress',actor:'Field Supervisor Anil Kumar',timestamp:'Aug 20, 2026, 09:15 AM',note:'Cold-mix patching team deployed.'}]},
   {id:'CIV-2026-000098',title:'Commercial garbage bin overflowing onto sidewalk',category:'garbage',categoryName:'Garbage & Waste',description:'Sanitation bin not cleared for 3 days.',status:'Resolved',priority:'High',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'Solid Waste Mgmt',location:{lat:28.6210,lng:77.2155,address:'Main Market Square, Block B, Green Park'},photoBefore:'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=80',photoAfter:'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80',createdAt:'2026-08-18T10:15:00Z',updatedAt:'2026-08-19T14:40:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 18, 2026, 10:15 AM',note:'Garbage accumulation reported.'},{status:'Resolved',actor:'Dr. Sunita Rao',timestamp:'Aug 19, 2026, 02:40 PM',note:'Sidewalk fully cleared.'}]},
   {id:'CIV-2026-000104',title:'High-pressure water pipe bursting across street',category:'water_leak',categoryName:'Water Pipe Leakage',description:'Main potable water pipe ruptured at junction.',status:'Submitted',priority:'High',citizenName:'Pooja Verma',citizenContact:'pooja@demo.com',assignedOrgName:'Water & Sewerage',location:{lat:28.6080,lng:77.2210,address:'Opposite Community Center, 5th Cross Road'},photoBefore:'https://images.unsplash.com/photo-1584467735815-f778f274e296?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-20T06:45:00Z',updatedAt:'2026-08-20T06:45:00Z',timeline:[{status:'Submitted',actor:'Pooja Verma',timestamp:'Aug 20, 2026, 06:45 AM',note:'Urgent leak reported.'}]},
   {id:'CIV-2026-000095',title:'4 Consecutive streetlights non-functional in dark lane',category:'streetlights',categoryName:'Broken Streetlights',description:'Entire stretch from House 12 to 28 is dark every evening.',status:'In Progress',priority:'Medium',citizenName:'Rahul Sharma',citizenContact:'citizen@demo.com',assignedOrgName:'Electricity Board',location:{lat:28.6180,lng:77.2020,address:'Lane 4, Pocket C, Residential Colony'},photoBefore:'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=800&q=80',photoAfter:null,createdAt:'2026-08-17T19:30:00Z',updatedAt:'2026-08-19T16:00:00Z',timeline:[{status:'Submitted',actor:'Rahul Sharma',timestamp:'Aug 17, 2026, 07:30 PM',note:'Streetlights reported.'},{status:'In Progress',actor:'Electrical Team',timestamp:'Aug 19, 2026, 04:00 PM',note:'Replacing shorted capacitor.'}]},
@@ -1160,7 +1232,7 @@ const cameraModule={
     const dateStr=now.toLocaleDateString('en-IN',{day:'2-digit',month:'2-digit',year:'numeric'});
     // CCTV watermark bottom bar
     ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,canvas.height-50,canvas.width,50);
-    ctx.font='bold 14px monospace';ctx.fillStyle='#10b981';ctx.fillText('✓ LIVE VERIFIED — SAARTHI',14,canvas.height-28);
+    ctx.font='bold 14px monospace';ctx.fillStyle='#10b981';ctx.fillText('✓ LIVE VERIFIED — CivicSAARTHI',14,canvas.height-28);
     ctx.font='12px monospace';ctx.fillStyle='#ffffff';ctx.fillText('GPS: '+lat.toFixed(5)+', '+lng.toFixed(5),14,canvas.height-10);
     ctx.fillStyle='#a5b4fc';ctx.textAlign='right';ctx.fillText(timeStr+' | '+dateStr,canvas.width-14,canvas.height-10);ctx.textAlign='left';
     // CCTV datetime top-left overlay on canvas
@@ -1188,7 +1260,7 @@ const cameraModule={
         const bh=Math.max(50,Math.floor(canvas.height*0.06));
         ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,canvas.height-bh,canvas.width,bh);
         const fs=Math.max(14,Math.floor(canvas.width*0.022));
-        ctx.font='bold '+fs+'px monospace';ctx.fillStyle='#10b981';ctx.fillText('✓ LIVE VERIFIED — SAARTHI',14,canvas.height-Math.floor(bh*0.55));
+        ctx.font='bold '+fs+'px monospace';ctx.fillStyle='#10b981';ctx.fillText('✓ LIVE VERIFIED — CivicSAARTHI',14,canvas.height-Math.floor(bh*0.55));
         ctx.font=Math.max(12,Math.floor(fs*0.8))+'px monospace';ctx.fillStyle='#ffffff';ctx.fillText('GPS: '+lat.toFixed(5)+', '+lng.toFixed(5),14,canvas.height-Math.floor(bh*0.2));
         ctx.fillStyle='#a5b4fc';ctx.textAlign='right';ctx.fillText(timeStr+' | '+dateStr,canvas.width-14,canvas.height-Math.floor(bh*0.2));ctx.textAlign='left';
         this.capturedImageData=canvas.toDataURL('image/jpeg',0.88);this.isLiveCapture=true;
@@ -1235,7 +1307,7 @@ window.locationModule=locationModule;
 const mapModule={
   fullMap:null,wizardMap:null,detailMiniMap:null,neighbourhoodMap:null,wizardMarker:null,fullMapMarkers:[],
   statusColors:{'Submitted':{bg:'#ef4444'},'Under Review':{bg:'#f97316'},'Assigned':{bg:'#eab308'},'In Progress':{bg:'#3b82f6'},'Resolved':{bg:'#10b981'},'Closed':{bg:'#64748b'}},
-  initFullMap(){const c=document.getElementById('full-interactive-map');if(!c||typeof L==='undefined')return;if(this.fullMap){setTimeout(()=>this.fullMap&&this.fullMap.invalidateSize(),200);return;}try{this.fullMap=L.map('full-interactive-map').setView([28.6139,77.2090],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap | SAARTHI'}).addTo(this.fullMap);this.renderFullMapMarkers();}catch(e){}},
+  initFullMap(){const c=document.getElementById('full-interactive-map');if(!c||typeof L==='undefined')return;if(this.fullMap){setTimeout(()=>this.fullMap&&this.fullMap.invalidateSize(),200);return;}try{this.fullMap=L.map('full-interactive-map').setView([28.6139,77.2090],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap | CivicSAARTHI'}).addTo(this.fullMap);this.renderFullMapMarkers();}catch(e){}},
   renderFullMapMarkers(sf='all'){if(!this.fullMap||typeof L==='undefined')return;this.fullMapMarkers.forEach(m=>this.fullMap.removeLayer(m));this.fullMapMarkers=[];window.dataStore.getAllComplaints().forEach(item=>{if(sf!=='all'&&item.status!==sf)return;const color=this.statusColors[item.status]?.bg||'#4f46e5';const icon=L.divIcon({className:'',html:'<div style="background:'+color+';width:32px;height:32px;border-radius:50%;border:2.5px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);color:white;font-weight:bold;font-size:13px;">'+(item.status==='Resolved'?'✓':'!')+'</div>',iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18]});const marker=L.marker([item.location.lat,item.location.lng],{icon}).addTo(this.fullMap);marker.bindPopup('<div style="width:240px;font-family:sans-serif"><div style="height:100px;overflow:hidden;position:relative"><img src="'+item.photoBefore+'" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:8px;left:8px;background:'+color+';color:white;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:4px;">'+item.status+'</span></div><div style="padding:12px"><div style="font-weight:bold;font-size:12px;margin-bottom:4px">'+item.title+'</div><div style="font-size:11px;color:#64748b;margin-bottom:8px">📍 '+item.location.address+'</div><button onclick="app.viewComplaintDetails(\''+item.id+'\')" style="background:#4f46e5;color:white;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:bold;cursor:pointer;width:100%">View Ticket →</button></div></div>');this.fullMapMarkers.push(marker);});},
   filterMapMarkers(status){this.renderFullMapMarkers(status);if(window.app)window.app.showToast('Showing: '+(status==='all'?'All':status),'info');},
   initWizardMap(){const c=document.getElementById('wizard-leaflet-map');if(!c||typeof L==='undefined')return;const lat=window.locationModule.currentLat,lng=window.locationModule.currentLng;if(this.wizardMap){this.wizardMap.setView([lat,lng],16);if(this.wizardMarker)this.wizardMarker.setLatLng([lat,lng]);setTimeout(()=>this.wizardMap&&this.wizardMap.invalidateSize(),250);return;}try{this.wizardMap=L.map('wizard-leaflet-map').setView([lat,lng],16);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(this.wizardMap);const pi=L.divIcon({className:'',html:'<div style="background:#4f46e5;width:36px;height:36px;border-radius:50%;border:3px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(79,70,229,0.5);font-size:16px;">📍</div>',iconSize:[36,36],iconAnchor:[18,36]});this.wizardMarker=L.marker([lat,lng],{draggable:true,icon:pi}).addTo(this.wizardMap);this.wizardMarker.on('dragend',async(e)=>{const p=e.target.getLatLng();window.locationModule.currentLat=p.lat;window.locationModule.currentLng=p.lng;const a=await window.locationModule.reverseGeocode(p.lat,p.lng);window.locationModule.currentAddress=a;window.locationModule.updateDisplay();});setTimeout(()=>this.wizardMap&&this.wizardMap.invalidateSize(),300);}catch(e){}},
@@ -1321,6 +1393,27 @@ const app={
     const target=document.getElementById('view-'+viewId);if(target){target.classList.remove('hidden');target.classList.add('animate-fadeIn');}
     if(viewId==='login'&&loginTab){loginModule.switchTab(loginTab);}
     if(viewId==='citizen-dashboard')this.renderCitizenDashboard();
+    if(viewId==='login'){
+      // Animate login page mini stats
+      setTimeout(function(){
+        function lsCount(id,target,suffix,dur){
+          var el=document.getElementById(id);if(!el)return;
+          var isF=String(target).indexOf('.')!==-1;var s=null;dur=dur||1500;
+          (function step(ts){if(!s)s=ts;var p=Math.min((ts-s)/dur,1),e=1-Math.pow(1-p,3);
+          el.innerText=(isF?(e*target).toFixed(1):Math.round(e*target).toLocaleString())+(suffix||'');
+          if(p<1)requestAnimationFrame(step);})(0);
+          requestAnimationFrame(function(ts){s=ts;(function step(ts){if(!s)s=ts;var p=Math.min((ts-s)/dur,1),e=1-Math.pow(1-p,3);el.innerText=(isF?(e*target).toFixed(1):Math.round(e*target).toLocaleString())+(suffix||'');if(p<1)requestAnimationFrame(step);})(ts);});
+        }
+        function lsAnim(id,target,suffix,dur){
+          var el=document.getElementById(id);if(!el)return;
+          var isF=String(target).indexOf('.')!==-1;var start=null;dur=dur||1500;
+          requestAnimationFrame(function run(ts){if(!start)start=ts;var p=Math.min((ts-start)/dur,1),e=1-Math.pow(1-p,3);el.innerText=(isF?(e*target).toFixed(1):Math.round(e*target).toLocaleString())+(suffix||'');if(p<1)requestAnimationFrame(run);});
+        }
+        lsAnim('ls-reported',1482,'',1600);
+        lsAnim('ls-resolved',1210,'',1600);
+        lsAnim('ls-trust',92.4,'%',1600);
+      },300);
+    }
     else if(viewId==='landing')setTimeout(function(){if(typeof runLandingCounters==='function')runLandingCounters();},300);
     else if(viewId==='authority-dashboard')this.renderAuthorityDashboard();
     else if(viewId==='map-view')setTimeout(()=>{if(window.mapModule)window.mapModule.initFullMap();},100);
@@ -1393,7 +1486,7 @@ const app={
     const priority=document.querySelector('input[name="wizard-priority"]:checked')?.value||'Medium';
     const session=authModule.session||{name:'Rahul Sharma',email:'citizen@demo.com'};
     const newId=window.dataStore.generateComplaintId();
-    const newComplaint={id:newId,title,category:cat.id,categoryName:cat.name,description:desc,status:'Submitted',priority,citizenName:session.name,citizenContact:session.email,assignedOrgName:cat.dept,location:{lat:window.locationModule.currentLat,lng:window.locationModule.currentLng,address:window.locationModule.currentAddress},photoBefore:window.cameraModule.capturedImageData,photoAfter:null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),timeline:[{status:'Submitted',actor:session.name+' (Citizen)',timestamp:new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}),note:'Civic issue reported via SAARTHI with live camera & GPS.'}]};
+    const newComplaint={id:newId,title,category:cat.id,categoryName:cat.name,description:desc,status:'Submitted',priority,citizenName:session.name,citizenContact:session.email,assignedOrgName:cat.dept,location:{lat:window.locationModule.currentLat,lng:window.locationModule.currentLng,address:window.locationModule.currentAddress},photoBefore:window.cameraModule.capturedImageData,photoAfter:null,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),timeline:[{status:'Submitted',actor:session.name+' (Citizen)',timestamp:new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}),note:'Civic issue reported via CivicSAARTHI with live camera & GPS.'}]};
     setTimeout(()=>{
       window.dataStore.addComplaint(newComplaint);this.latestSubmittedId=newId;
       if(btn){btn.disabled=false;btn.innerHTML='<i data-lucide="check-circle" class="w-5 h-5"></i><span>'+langModule.t('review.submit')+'</span>';}
@@ -1583,21 +1676,20 @@ const app={
     tbody.innerHTML=complaints.map(function(c){
       var color=(window.mapModule.statusColors[c.status]&&window.mapModule.statusColors[c.status].bg)||'#4f46e5';
       var pc=c.priority==='High'?'text-rose-600 bg-rose-50':c.priority==='Medium'?'text-amber-600 bg-amber-50':'text-slate-600 bg-slate-50';
-      var uploadId='upload-'+c.id.replace(/-/g,'_');
+      var hasProof=!!c.photoAfter;
       return '<tr class="hover:bg-slate-50 transition">'
         +'<td class="py-3 px-4 font-mono font-bold text-indigo-600 text-xs">'+c.id+'</td>'
-        +'<td class="py-3 px-4"><img src="'+c.photoBefore+'" class="w-10 h-10 rounded-lg object-cover border border-slate-200" alt=""/></td>'
+        +'<td class="py-3 px-4"><div class="relative w-10 h-10"><img src="'+c.photoBefore+'" class="w-10 h-10 rounded-lg object-cover border border-slate-200" alt=""/>'+(hasProof?'<span class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center" title="Proof uploaded"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+'</div></td>'
         +'<td class="py-3 px-4 max-w-xs"><span class="text-[10px] uppercase font-bold text-slate-400 block">'+c.categoryName+'</span><span class="font-bold text-slate-800 text-xs">'+c.title+'</span></td>'
         +'<td class="py-3 px-4 text-[11px] text-slate-500 max-w-xs truncate">'+c.location.address+'</td>'
         +'<td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold '+pc+'">'+c.priority+'</span></td>'
         +'<td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold text-white" style="background-color:'+color+'">'+c.status+'</span></td>'
         +'<td class="py-3 px-4 text-right">'
-        +'<div class="flex items-center justify-end gap-2">'
-        +'<label title="Upload proof photo" class="cursor-pointer flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold px-3 py-1.5 rounded-lg transition text-[11px]" onclick="app.viewComplaintDetails(\''+c.id+'\')">'
-        +'<i data-lucide="camera" class="w-3.5 h-3.5"></i> Upload'
-        +'<input type="file" accept="image/*" class="hidden" id="'+uploadId+'" onchange="app.handleQueueUpload(event,\''+c.id+'\')">'
-        +'</label>'
-        +'</div>'
+        +'<button onclick="app.openMuniCamera(\''+c.id+'\')" '
+        +'class="flex items-center gap-1.5 '+(hasProof?'bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700':'bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700')+' font-bold px-3 py-1.5 rounded-lg transition text-[11px]" '
+        +'title="'+(hasProof?'Update proof photo':'Upload proof via live camera')+'">'
+        +'<i data-lucide="camera" class="w-3.5 h-3.5"></i> '+(hasProof?'Update':'📷 Capture')
+        +'</button>'
         +'</td>'
         +'</tr>';
     }).join('');
@@ -1612,6 +1704,151 @@ const app={
     };
     reader.readAsDataURL(file);
   },
+  // ─── MUNICIPALITY LIVE CAMERA ───
+  _muniCamStream:null,_muniCamComplaintId:null,_muniCamClockInterval:null,_muniCapturedPhoto:null,
+
+  openMuniCamera(complaintId){
+    this._muniCamComplaintId=complaintId;
+    this._muniCapturedPhoto=null;
+    var modal=document.getElementById('muni-cam-modal');
+    var lbl=document.getElementById('muni-cam-complaint-label');
+    if(lbl)lbl.innerText='Complaint: '+complaintId;
+    // Reset UI state
+    var els=['muni-cam-video','muni-cam-preview','muni-cam-rec-overlay','muni-cam-btns-streaming','muni-cam-btns-preview'];
+    els.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.add('hidden');});
+    var ph=document.getElementById('muni-cam-placeholder');if(ph)ph.classList.remove('hidden');
+    var bi=document.getElementById('muni-cam-btns-init');if(bi)bi.classList.remove('hidden');
+    if(modal)modal.classList.remove('hidden');
+    this.stopMuniCamera();
+    if(window.lucide&&typeof window.lucide.createIcons==='function'){try{window.lucide.createIcons();}catch(e){}}
+  },
+
+  async startMuniCamera(){
+    var video=document.getElementById('muni-cam-video');
+    var ph=document.getElementById('muni-cam-placeholder');
+    var bi=document.getElementById('muni-cam-btns-init');
+    var bs=document.getElementById('muni-cam-btns-streaming');
+    var rec=document.getElementById('muni-cam-rec-overlay');
+    try{
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('No camera API');
+      var stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      this._muniCamStream=stream;
+      video.muted=true;video.srcObject=stream;
+      video.classList.remove('hidden');
+      if(ph)ph.classList.add('hidden');
+      if(bi)bi.classList.add('hidden');
+      if(bs)bs.classList.remove('hidden');
+      if(rec)rec.classList.remove('hidden');
+      try{await video.play();}catch(e){}
+      // Start clock
+      var timeEl=document.getElementById('muni-cam-time');
+      this._muniCamClockInterval=setInterval(function(){if(timeEl)timeEl.innerText=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});},1000);
+      this.showToast('Live camera started','info');
+    }catch(err){
+      var msg='Camera access failed.';
+      if(err.name==='NotAllowedError')msg='Allow camera in browser settings.';
+      else if(err.name==='NotFoundError')msg='No camera found on device.';
+      this.showToast(msg,'warning');
+    }
+  },
+
+  captureMuniPhoto(){
+    var video=document.getElementById('muni-cam-video');
+    var canvas=document.getElementById('muni-cam-canvas');
+    var preview=document.getElementById('muni-cam-preview');
+    var bs=document.getElementById('muni-cam-btns-streaming');
+    var bp=document.getElementById('muni-cam-btns-preview');
+    var rec=document.getElementById('muni-cam-rec-overlay');
+    if(!video||video.videoWidth===0){this.showToast('Camera not ready','warning');return;}
+    canvas.width=video.videoWidth||640;canvas.height=video.videoHeight||480;
+    var ctx=canvas.getContext('2d');ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    // Add proof watermark
+    var now=new Date();
+    var ts=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})+' | '+now.toLocaleDateString('en-IN');
+    var bh=Math.max(44,Math.floor(canvas.height*0.07));
+    ctx.fillStyle='rgba(0,0,0,0.78)';ctx.fillRect(0,canvas.height-bh,canvas.width,bh);
+    ctx.font='bold 13px monospace';ctx.fillStyle='#34d399';
+    ctx.fillText('MUNICIPAL PROOF — CivicSAARTHI',12,canvas.height-bh+bh*0.45);
+    ctx.font='11px monospace';ctx.fillStyle='#fff';
+    ctx.fillText('Officer: '+((window.authModule.session&&window.authModule.session.name)||'Official'),12,canvas.height-bh+bh*0.8);
+    ctx.fillStyle='#93c5fd';ctx.textAlign='right';
+    ctx.fillText(ts,canvas.width-12,canvas.height-bh+bh*0.8);ctx.textAlign='left';
+    this._muniCapturedPhoto=canvas.toDataURL('image/jpeg',0.88);
+    preview.src=this._muniCapturedPhoto;preview.classList.remove('hidden');
+    video.classList.add('hidden');
+    if(rec)rec.classList.add('hidden');
+    if(bs)bs.classList.add('hidden');
+    if(bp)bp.classList.remove('hidden');
+    this.stopMuniCamera();
+    this.showToast('Proof photo captured!','success');
+  },
+
+  retakeMuniPhoto(){
+    var preview=document.getElementById('muni-cam-preview');
+    var bi=document.getElementById('muni-cam-btns-init');
+    var bp=document.getElementById('muni-cam-btns-preview');
+    if(preview)preview.classList.add('hidden');
+    if(bp)bp.classList.add('hidden');
+    if(bi)bi.classList.remove('hidden');
+    var ph=document.getElementById('muni-cam-placeholder');if(ph)ph.classList.remove('hidden');
+    this._muniCapturedPhoto=null;
+    this.stopMuniCamera();
+  },
+
+  handleMuniFileUpload(event){
+    var file=event.target.files[0];if(!file)return;
+    var self=this;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var preview=document.getElementById('muni-cam-preview');
+      var bi=document.getElementById('muni-cam-btns-init');
+      var bp=document.getElementById('muni-cam-btns-preview');
+      var ph=document.getElementById('muni-cam-placeholder');
+      self._muniCapturedPhoto=e.target.result;
+      if(preview){preview.src=e.target.result;preview.classList.remove('hidden');}
+      if(bi)bi.classList.add('hidden');
+      if(ph)ph.classList.add('hidden');
+      if(bp)bp.classList.remove('hidden');
+      self.showToast('Photo loaded. Click Save as Proof.','success');
+    };
+    reader.readAsDataURL(file);
+  },
+
+  saveMuniProofPhoto(){
+    if(!this._muniCapturedPhoto||!this._muniCamComplaintId){this.showToast('No photo to save','warning');return;}
+    var c=window.dataStore.getComplaintById(this._muniCamComplaintId);
+    if(c){
+      c.photoAfter=this._muniCapturedPhoto;
+      // Also update status to Resolved if it was In Progress
+      var now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      if(c.status==='In Progress'||c.status==='Submitted'||c.status==='Under Review'){
+        c.status='Resolved';
+        c.timeline.push({status:'Resolved',actor:(window.authModule.session&&window.authModule.session.name)||'Officer',timestamp:now,note:'Resolution proof photo uploaded by municipal authority.'});
+      }
+      c.updatedAt=new Date().toISOString();
+      window.dataStore.saveComplaints();
+      this.showToast('Proof saved! Complaint marked Resolved. ✓','success');
+      this.closeMuniCamera();
+      this.renderAuthorityQueue();
+      this.renderNotificationsList();
+    } else {
+      this.showToast('Complaint not found','error');
+    }
+  },
+
+  stopMuniCamera(){
+    if(this._muniCamStream){this._muniCamStream.getTracks().forEach(function(t){t.stop();});this._muniCamStream=null;}
+    if(this._muniCamClockInterval){clearInterval(this._muniCamClockInterval);this._muniCamClockInterval=null;}
+  },
+
+  closeMuniCamera(){
+    this.stopMuniCamera();
+    var modal=document.getElementById('muni-cam-modal');
+    if(modal)modal.classList.add('hidden');
+    this._muniCapturedPhoto=null;
+    this._muniCamComplaintId=null;
+  },
+
   handleEvidenceUpload(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(e)=>{this.selectedEvidencePhoto=e.target.result;this.showToast('Evidence photo ready!','success');};reader.readAsDataURL(file);},
   quickAddPresetEvidence(){this.selectedEvidencePhoto='https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=80';this.showToast('Sample proof attached.','info');},
   submitAuthorityAction(){const status=document.getElementById('action-status-select')?.value;const note=document.getElementById('action-comment-input')?.value.trim();if(!this.activeComplaintId)return;const ok=window.dataStore.updateComplaintStatus(this.activeComplaintId,status,note||'Updated.',authModule.session?.name||'Officer',this.selectedEvidencePhoto);if(ok){this.selectedEvidencePhoto=null;const ci=document.getElementById('action-comment-input');if(ci)ci.value='';this.showToast('Updated to "'+status+'"','success');this.viewComplaintDetails(this.activeComplaintId);this.renderNotificationsList();}},
